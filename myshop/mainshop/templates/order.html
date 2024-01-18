@@ -4,12 +4,76 @@
 <html>
 <head>
     <title>Заказ</title>
+    <style>
+        body {
+            background-color: #f0f0f0; /* Цвет фона */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh; /* Высота экрана */
+        }
+
+        h1 {
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+
+        #order-button {
+            padding: 10px 20px;
+            background-color: #007bff; /* Цвет кнопки */
+            color: #fff; /* Цвет текста на кнопке */
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        #order-button:hover {
+            background-color: #0056b3; /* Цвет кнопки при наведении */
+        }
+    </style>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 </head>
 <body>
     <h1>Добро пожаловать в наш магазин!</h1>
-    <form action="/place_order/" method="post">
-        {% csrf_token %}
-        <button type="submit">Сделать заказ</button>
-    </form>
+    <button id="order-button">Сделать заказ</button>
+
+    <script type="text/javascript">
+        document.getElementById('order-button').addEventListener('click', function() {
+            fetch('/order/send_order/', {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': getCookie('csrftoken'), // Получаем CSRF токен
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ 'order': 'details' }) // Здесь может быть информация о заказе
+            })
+            .then(response => {
+                if (response.ok) {
+                    return response.json()
+                }
+                throw new Error('Network response was not ok.');
+            })
+            .then(data => alert('Уведомление отправлено!'))
+            .catch(error => alert('Ошибка при отправке уведомления: ' + error.message));
+        });
+
+        // Функция для получения значения cookie по имени
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    // Находим нужный cookie
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+    </script>
 </body>
 </html>
