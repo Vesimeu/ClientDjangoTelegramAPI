@@ -62,17 +62,34 @@
 </head>
 <body>
     <div id="order-form">
-        <h1>Добро пожаловать в наш магазин!</h1>
-        <textarea id="order-description" placeholder="Введите описание заказа"></textarea>
+        <h1>Сайт для фриланс заказов!</h1>
+        <label for="nickname" style="margin-bottom: 5px; display: block;">Никнейм Telegram (Например:Vesimeu):</label>
+        <input type="text" id="nickname" placeholder="Введите ваш никнейм" style="margin-bottom: 10px; width: calc(100% - 20px); padding: 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 16px; box-sizing: border-box;">
+
+        <label for="order-description" style="margin-bottom: 5px; display: block;">Описание заказа:</label>
+        <textarea id="order-description" placeholder="Введите описание заказа" style="margin-bottom: 10px; width: calc(100% - 20px); padding: 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 16px; box-sizing: border-box;"></textarea>
+
+        <label for="price" style="margin-bottom: 5px; display: block;">Цена:</label>
+        <input type="number" id="price" placeholder="Введите цену заказа" style="margin-bottom: 10px; width: calc(100% - 20px); padding: 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 16px; box-sizing: border-box;">
+
         <button id="order-button">Сделать заказ</button>
     </div>
 
-
     <script type="text/javascript">
         document.getElementById('order-button').addEventListener('click', function() {
+            const nickname = document.getElementById('nickname').value; // Получаем никнейм пользователя из поля ввода
             const orderDescription = document.getElementById('order-description').value; // Получаем описание заказа из поля ввода
+            const price = document.getElementById('price').value; // Получаем цену заказа из поля ввода
+            if (!nickname.trim()) {
+                alert('Введите ваш никнейм telegram.');
+                return;
+            }
             if (!orderDescription.trim()) {
-                alert('Введите описание <за></за>каза.');
+                alert('Введите описание заказа.');
+                return;
+            }
+            if (!price.trim()) {
+                alert('Введите цену заказа.');
                 return;
             }
 
@@ -82,11 +99,11 @@
                     'X-CSRFToken': getCookie('csrftoken'), // Получаем CSRF токен
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ 'order_description': orderDescription }) // Передаем описание заказа
+                body: JSON.stringify({ 'nickname': nickname, 'order_description': orderDescription, 'price': price }) // Передаем никнейм, описание заказа и цену
             })
             .then(response => {
                 if (response.ok) {
-                    return response.json()
+                    return response.json();
                 }
                 throw new Error('Network response was not ok.');
             })

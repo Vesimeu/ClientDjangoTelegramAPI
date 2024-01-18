@@ -8,8 +8,7 @@ from django.views.decorators.csrf import csrf_exempt
 from telegram import Bot
 import os
 import telebot
-import asyncio
-from asgiref.sync import sync_to_async
+
 
 
 
@@ -23,29 +22,16 @@ TELEGRAM_CHAT_ID = '708969494'
 
 bot = telebot.TeleBot(TELEGRAM_TOKEN, parse_mode=None)
 
-# @csrf_exempt
-# def send_order_notification(request):
-#     if request.method == 'POST':
-#         message = "Поступил новый заказ!"
-#         bot.send_message(chat_id=TELEGRAM_CHAT_ID, text=message)
-#         return JsonResponse({'status': 'success'}, status=200)
-#     else:
-#         return JsonResponse({'status': 'bad request'}, status=400)
-
-# Эта функция будет вызываться для отправки сообщения в Telegram
-# Функция для отправки сообщения в Telegram
-# async def send_telegram_message(chat_id, text):
-#     try:
-#         await bot.send_message(chat_id=chat_id, text=text)
-#     except TimedOut as e:
-#         print(f"Ошибка отправки уведомления: {e}")
-
 @csrf_exempt
 def send_order(request):
     if request.method == 'POST':
         try:
-            order_description = json.loads(request.body)['order_description']
-            bot.send_message(TELEGRAM_CHAT_ID, f"Поступил новый заказ:\n{order_description}")
+            data = json.loads(request.body)
+            nickname = data['nickname']
+            order_description = data['order_description']
+            price = data["price"]
+            message = f"Заказ от @{nickname}:\n{order_description} \nЦена: {price}"
+            bot.send_message(TELEGRAM_CHAT_ID, message)
             return JsonResponse({'status': 'success'}, status=200)
         except Exception as e:
             print(f"Ошибка: {e}")
