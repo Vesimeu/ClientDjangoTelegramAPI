@@ -6,47 +6,83 @@
     <title>Заказ</title>
     <style>
         body {
-            background-color: #f0f0f0; /* Цвет фона */
+            background-color: #f7f7f7; /* Обновленный цвет фона */
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             height: 100vh; /* Высота экрана */
+            margin: 0; /* Убираем отступы */
+            font-family: 'Arial', sans-serif; /* Добавляем шрифт */
         }
 
         h1 {
-            font-size: 24px;
+            font-size: 32px; /* Увеличенный размер шрифта */
+            color: #333; /* Цвет текста заголовка */
             margin-bottom: 20px;
+        }
+
+        #order-form {
+            width: 100%;
+            max-width: 500px; /* Максимальная ширина формы */
+            background: #fff; /* Фон для формы */
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Тень для формы */
+            margin: 0 20px; /* Отступы слева и справа */
         }
 
         #order-button {
             padding: 10px 20px;
-            background-color: #007bff; /* Цвет кнопки */
-            color: #fff; /* Цвет текста на кнопке */
+            background-color: #5cb85c; /* Изменен цвет кнопки */
+            color: #fff;
             border: none;
             cursor: pointer;
             transition: background-color 0.3s;
+            width: 100%; /* Занимает всю ширину контейнера */
+            font-size: 18px; /* Увеличенный размер текста кнопки */
+            border-radius: 4px; /* Скругление углов кнопки */
         }
 
         #order-button:hover {
-            background-color: #0056b3; /* Цвет кнопки при наведении */
+            background-color: #4cae4c; /* Цвет кнопки при наведении */
+        }
+
+        #order-description {
+            width: calc(100% - 20px); /* Ширина с учетом padding */
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            margin-bottom: 10px;
+            font-size: 16px; /* Увеличенный размер текста */
+            box-sizing: border-box; /* Гарантирует, что padding не добавляет ширину */
         }
     </style>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 </head>
 <body>
-    <h1>Добро пожаловать в наш магазин!</h1>
-    <button id="order-button">Сделать заказ</button>
+    <div id="order-form">
+        <h1>Добро пожаловать в наш магазин!</h1>
+        <textarea id="order-description" placeholder="Введите описание заказа"></textarea>
+        <button id="order-button">Сделать заказ</button>
+    </div>
+
 
     <script type="text/javascript">
         document.getElementById('order-button').addEventListener('click', function() {
+            const orderDescription = document.getElementById('order-description').value; // Получаем описание заказа из поля ввода
+            if (!orderDescription.trim()) {
+                alert('Введите описание <за></за>каза.');
+                return;
+            }
+
             fetch('/order/send_order/', {
                 method: 'POST',
                 headers: {
                     'X-CSRFToken': getCookie('csrftoken'), // Получаем CSRF токен
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ 'order': 'details' }) // Здесь может быть информация о заказе
+                body: JSON.stringify({ 'order_description': orderDescription }) // Передаем описание заказа
             })
             .then(response => {
                 if (response.ok) {
