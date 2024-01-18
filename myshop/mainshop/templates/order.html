@@ -1,0 +1,15 @@
+<!-- store/templates/order.html -->
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Заказ</title>
+</head>
+<body>
+    <h1>Добро пожаловать в наш магазин!</h1>
+    <form action="/place_order/" method="post">
+        {% csrf_token %}
+        <button type="submit">Сделать заказ</button>
+    </form>
+</body>
+</html>
