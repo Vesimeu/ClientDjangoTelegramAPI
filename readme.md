@@ -1,4 +1,4 @@
-![image](https://github.com/Vesimeu/ClientDjangoTelegramAPI/assets/99329018/819bfef9-195f-4603-8bbb-1fefc0596e3e)<div id="header" align="center">
+
   <img src="https://media.giphy.com/media/CTX0ivSQbI78A/giphy.gif" width="100"/>
 </div>
 <div id="badges" align="center">
