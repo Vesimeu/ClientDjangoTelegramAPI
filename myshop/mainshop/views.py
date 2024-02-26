@@ -8,7 +8,11 @@ from django.views.decorators.csrf import csrf_exempt
 from telegram import Bot
 import os
 import telebot
+from telebot import types
 
+
+#Тянем бота
+from .telegram_bot import bot
 
 
 
@@ -21,7 +25,15 @@ TELEGRAM_CHAT_ID = '708969494'
 
 
 bot = telebot.TeleBot(TELEGRAM_TOKEN, parse_mode=None)
+markup = types.InlineKeyboardMarkup()
+btn_accept = types.InlineKeyboardButton('Принять заказ', callback_data='accept')
+btn_decline = types.InlineKeyboardButton('Отменить заказ', callback_data='decline')
 
+# Добавляем кнопки в разметку
+markup.add(btn_accept, btn_decline)
+
+# В вашей функции, которая обрабатывает отправку сообщений, добавьте разметку
+bot.send_message(TELEGRAM_CHAT_ID, 'Выберите действие:', reply_markup=markup)
 @csrf_exempt
 def send_order(request):
     if request.method == 'POST':
