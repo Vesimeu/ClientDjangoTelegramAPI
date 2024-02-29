@@ -27,6 +27,28 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
+DJANGO_TELEGRAMBOT = {
+    'MODE': 'WEBHOOK',  # Режим работы - вебхук
+    'WEBHOOK_SITE': 'https://mywebsite.com',  # Ссылка на ваш веб-сайт
+    'WEBHOOK_PREFIX': '/prefix',  # Префикс для вебхука (необязательно)
+    'BOTS': [
+        {
+            'TOKEN': '123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11',  # Токен вашего бота
+
+            # Другие возможные настройки:
+            # 'ALLOWED_UPDATES': ['message', 'edited_channel_post', 'callback_query'],  # Разрешенные типы обновлений
+            # 'TIMEOUT': 10,  # Таймаут ожидания ответа от сервера
+            # 'WEBHOOK_MAX_CONNECTIONS': 40,  # Максимальное количество одновременных соединений с вебхуком
+            # 'POLL_INTERVAL': 0.0,  # Интервал опроса сервера Telegram (если используется режим POLLING)
+            # 'POLL_CLEAN': False,  # Очищать ли ожидающие обновления на сервере Telegram перед началом опроса
+            # 'POLL_BOOTSTRAP_RETRIES': 0,  # Количество попыток повторного подключения при запуске бота
+            # 'POLL_READ_LATENCY': 2,  # Время ожидания ответа от сервера Telegram
+        },
+        # Другие боты здесь с тем же форматом
+    ],
+}
+
+
 
 # Application definition
 
@@ -38,6 +60,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'mainshop',
+    'django_telegrambot',
 ]
 
 
@@ -119,9 +142,17 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.0/howto/static-files/
 
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
+
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# Переменная для определения, следует ли запускать ботов
+RUN_BOTS = True  # Или False, в зависимости от ваших потребностей
+
+TOKEN_ADMIN = '6969425776:AAEXBAbffPUuJF_I3ekKzh0-z0y_Lk1JwAE'
+
+PROXY = 'http://103.106.219.87:8085'

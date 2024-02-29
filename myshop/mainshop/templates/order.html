@@ -61,16 +61,16 @@
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 </head>
 <body>
-    <div id="order-form">
+       <div id="order-form">
         <h1>Сайт для фриланс заказов!</h1>
         <label for="nickname" style="margin-bottom: 5px; display: block;">Никнейм Telegram (Например:Vesimeu):</label>
-        <textarea type="text" id="nickname" placeholder="Введите ваш никнейм" style="margin-bottom: 10px; width: calc(100% - 20px); padding: 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 16px; box-sizing: border-box;"></textarea>
+        <textarea type="text" id="nickname" name="nickname" placeholder="Введите ваш никнейм" autocomplete="nickname" style="margin-bottom: 10px; width: calc(100% - 20px); padding: 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 16px; box-sizing: border-box;"></textarea>
 
         <label for="order-description" style="margin-bottom: 5px; display: block;">Описание заказа:</label>
-        <textarea type="text" id="order-description" placeholder="Введите описание заказа" style="margin-bottom: 10px; width: calc(100% - 20px); padding: 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 16px; box-sizing: border-box;"></textarea>
+        <textarea type="text" id="order-description" name="order-description" placeholder="Введите описание заказа" autocomplete="order-description" style="margin-bottom: 10px; width: calc(100% - 20px); padding: 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 16px; box-sizing: border-box;"></textarea>
 
         <label for="price" style="margin-bottom: 5px; display: block;">Цена:</label>
-        <input type="number" id="price" placeholder="Введите цену заказа" style="margin-bottom: 10px; width: calc(100% - 20px); padding: 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 16px; box-sizing: border-box;">
+        <input type="number" id="price" name="price" placeholder="Введите цену заказа" autocomplete="price" style="margin-bottom: 10px; width: calc(100% - 20px); padding: 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 16px; box-sizing: border-box;">
 
         <button id="order-button">Сделать заказ</button>
     </div>
