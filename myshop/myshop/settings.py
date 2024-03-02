@@ -155,4 +155,6 @@ RUN_BOTS = True  # Или False, в зависимости от ваших по�
 
 TOKEN_ADMIN = '6969425776:AAEXBAbffPUuJF_I3ekKzh0-z0y_Lk1JwAE'
 
+TOKEN_BOT_CLIENT = '7020363948:AAF7oznvRaebiBkGI9Se7tF622_gKt7dbqI'
+
 PROXY = 'http://103.106.219.87:8085'

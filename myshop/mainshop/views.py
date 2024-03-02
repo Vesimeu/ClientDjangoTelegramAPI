@@ -16,7 +16,7 @@ markup = InlineKeyboardMarkup([
      InlineKeyboardButton('Отменить заказ', callback_data='decline')]
 ])
 
-BOT_TOKEN = '7020363948:AAF7oznvRaebiBkGI9Se7tF622_gKt7dbqI'
+BOT_TOKEN = settings.TOKEN_ADMIN
 
 @csrf_exempt
 async def send_order(request):
