@@ -1,7 +1,6 @@
 from django.apps import AppConfig
 import threading
 import asyncio
-from .telegram_bot import start_bot_orders, dispatcher_orders
 from .telegram_bot_auth import start_bot_auth, dispatcher_auth
 
 class MainshopConfig(AppConfig):

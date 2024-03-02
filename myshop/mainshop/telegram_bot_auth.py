@@ -1,12 +1,11 @@
 # myshop/mainshop/telegram_bot_auth.py
 import os
 import asyncio
+from myshop import settings
 from aiogram import Bot, Dispatcher, executor, types
 
-# Читаем токен из файла
-token_file_path = os.path.join(os.path.dirname(__file__), 'telegram_auth_token_auth.txt')
-with open(token_file_path, 'r') as file:
-    TELEGRAM_TOKEN_AUTH = file.readline().strip()
+# Читаем токен из файла settings.TOKEN_BOT_CLIENT
+TELEGRAM_TOKEN_AUTH =settings.TOKEN_BOT_CLIENT
 
 # Создаем объект бота для авторизации и регистрации
 bot_auth = Bot(token=TELEGRAM_TOKEN_AUTH)
