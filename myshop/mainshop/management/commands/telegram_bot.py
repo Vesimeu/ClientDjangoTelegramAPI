@@ -21,6 +21,8 @@ class Command(BaseCommand):
         # Обработчик команды /start
         def start(update: Update, context: CallbackContext):
             update.message.reply_text("Добро пожаловать! Этот бот поможет вам сделать заказ через наш сайт.")
+        def help(update: Update, context: CallbackContext):
+            update.message.reply_text("/accept {number} - принять заказ \n /decline {number} - отказать \n /order_list - список заказов.")
 
         # Обработчик команды /accept
         def accept_order(update: Update, context: CallbackContext):
@@ -28,9 +30,10 @@ class Command(BaseCommand):
                 order_id = context.args[0]  # Предположим, что аргументом передается ID заказа
                 order = Order.objects.get(id=order_id)
                 # Здесь вы можете обновить статус заказа в базе данных, например:
-                order.status = 'accepted'
+                order.accepted = True
                 order.save()
                 update.message.reply_text(f"Заказ #{order_id} принят.")
+                print("Заказ действиетльно принят!" + str(order.accepted))
             else:
                 update.message.reply_text("Вы не указали ID заказа.")
 
@@ -39,7 +42,7 @@ class Command(BaseCommand):
             order_id = context.args[0]  # Предположим, что аргументом передается ID заказа
             order = Order.objects.get(id=order_id)
             # Здесь вы можете обновить статус заказа в базе данных, например:
-            order.status = 'declined'
+            order.accepted = False
             order.save()
             update.message.reply_text(f"Заказ #{order_id} отклонен.")
 
@@ -48,13 +51,14 @@ class Command(BaseCommand):
             if orders:
                 message = "Список заказов:\n"
                 for order in orders:
-                    message += f"Заказ #{order.id} от @{order.nickname}:\n{order.description}\nЦена: {order.price}\n\n"
+                    message += f"Заказ #{order.id} от @{order.nickname}:\n{order.description}\nЦена: {order.price}\n\n" #Добавить статус заказа
             else:
                 message = "Список заказов пуст."
             update.message.reply_text(message)
 
         # Создаем обработчики команд
         start_handler = CommandHandler('start', start)
+        help = CommandHandler('help', help)
         accept_handler = CommandHandler('accept', accept_order)
         decline_handler = CommandHandler('decline', decline_order)
         order_list_handler = CommandHandler('order_list', order_list)
@@ -63,6 +67,7 @@ class Command(BaseCommand):
         updater = Updater(bot=bot, use_context=True)
         dp = updater.dispatcher
         dp.add_handler(start_handler)
+        dp.add_handler(help)
         dp.add_handler(accept_handler)
         dp.add_handler(decline_handler)
         dp.add_handler(order_list_handler)

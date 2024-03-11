@@ -74,6 +74,9 @@
 
         <button id="order-button">Сделать заказ</button>
     </div>
+       <div style="position: absolute; top: 10px; right: 10px;">
+    <a href="{% url 'telegram_auth' %}" style="padding: 10px 20px; background-color: #5cb85c; color: #fff; border: none; cursor: pointer; transition: background-color 0.3s; border-radius: 4px;">Авторизация/Регистрация</a>
+        </div>
 
     <script type="text/javascript">
         document.getElementById('order-button').addEventListener('click', function() {
