@@ -1,5 +1,4 @@
 <!-- store/templates/order.html -->
-
 <!DOCTYPE html>
 <html>
 <head>
@@ -58,21 +57,29 @@
             box-sizing: border-box; /* Гарантирует, что padding не добавляет ширину */
         }
     </style>
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.1/jquery.min.js"></script>
 </head>
 <body>
        <div id="order-form">
-        <h1>Сайт для фриланс заказов!</h1>
-        <label for="nickname" style="margin-bottom: 5px; display: block;">Никнейм Telegram (Например:Vesimeu):</label>
-        <textarea type="text" id="nickname" name="nickname" placeholder="Введите ваш никнейм" autocomplete="nickname" style="margin-bottom: 10px; width: calc(100% - 20px); padding: 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 16px; box-sizing: border-box;"></textarea>
+    <h1>Сайт для фриланс заказов!</h1>
+    <input type="hidden" id="telegram-id" name="telegram-id" value="{{ telegram_id }}">
 
-        <label for="order-description" style="margin-bottom: 5px; display: block;">Описание заказа:</label>
-        <textarea type="text" id="order-description" name="order-description" placeholder="Введите описание заказа" autocomplete="order-description" style="margin-bottom: 10px; width: calc(100% - 20px); padding: 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 16px; box-sizing: border-box;"></textarea>
+    <label for="subject" style="margin-bottom: 5px; display: block;">Тип Предмета:</label>
+    <select id="subject" name="subject" style="margin-bottom: 10px; width: calc(100% - 20px); padding: 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 16px; box-sizing: border-box;">
+        <option value="" selected disabled>Выберите тип предмета</option>
+        <option value="1">Математика</option>
+        <option value="2">Информатика</option>
+        <option value="3">Начертательная геометрия</option>
+        <option value="4">УИР</option>
+    </select>
 
-        <label for="price" style="margin-bottom: 5px; display: block;">Цена:</label>
-        <input type="number" id="price" name="price" placeholder="Введите цену заказа" autocomplete="price" style="margin-bottom: 10px; width: calc(100% - 20px); padding: 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 16px; box-sizing: border-box;">
+    <label for="order-description" style="margin-bottom: 5px; display: block;">Описание заказа:</label>
+    <textarea type="text" id="order-description" name="order-description" placeholder="Введите описание заказа" autocomplete="order-description" style="margin-bottom: 10px; width: calc(100% - 20px); padding: 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 16px; box-sizing: border-box;"></textarea>
 
-        <button id="order-button">Сделать заказ</button>
+    <label for="price" style="margin-bottom: 5px; display: block;">Цена:</label>
+    <input type="number" id="price" name="price" placeholder="Введите цену заказа" autocomplete="price" style="margin-bottom: 10px; width: calc(100% - 20px); padding: 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 16px; box-sizing: border-box;">
+
+    <button id="order-button">Сделать заказ</button>
     </div>
        <div style="position: absolute; top: 10px; right: 10px;">
     <a href="{% url 'telegram_auth' %}" style="padding: 10px 20px; background-color: #5cb85c; color: #fff; border: none; cursor: pointer; transition: background-color 0.3s; border-radius: 4px;">Авторизация/Регистрация</a>
@@ -80,39 +87,41 @@
 
     <script type="text/javascript">
         document.getElementById('order-button').addEventListener('click', function() {
-            const nickname = document.getElementById('nickname').value; // Получаем никнейм пользователя из поля ввода
-            const orderDescription = document.getElementById('order-description').value; // Получаем описание заказа из поля ввода
-            const price = document.getElementById('price').value; // Получаем цену заказа из поля ввода
-            if (!nickname.trim()) {
-                alert('Введите ваш никнейм telegram.');
-                return;
-            }
-            if (!orderDescription.trim()) {
-                alert('Введите описание заказа.');
-                return;
-            }
-            if (!price.trim()) {
-                alert('Введите цену заказа.');
-                return;
-            }
+        const subject = document.getElementById('subject').value;
+        const orderDescription = document.getElementById('order-description').value;
+        const price = document.getElementById('price').value;
+        const telegramId = document.getElementById('telegram-id').value; // Получаем telegram_id
 
-            fetch('/order/send_order/', {
-                method: 'POST',
-                headers: {
-                    'X-CSRFToken': getCookie('csrftoken'), // Получаем CSRF токен
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ 'nickname': nickname, 'order_description': orderDescription, 'price': price }) // Передаем никнейм, описание заказа и цену
-            })
-            .then(response => {
-                if (response.ok) {
-                    return response.json();
-                }
-                throw new Error('Network response was not ok.');
-            })
-            .then(data => alert('Уведомление отправлено!'))
-            .catch(error => alert('Ошибка при отправке уведомления: ' + error.message));
-        });
+        if (!subject.trim()) {
+            alert('Введите тип предмета.');
+            return;
+        }
+        if (!orderDescription.trim()) {
+            alert('Введите описание заказа.');
+            return;
+        }
+        if (!price.trim()) {
+            alert('Введите цену заказа.');
+            return;
+        }
+
+        fetch('/order/send_order/', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken'),
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ 'subject': subject, 'order_description': orderDescription, 'price': price, 'id_client': telegramId }) // Добавляем telegram_id
+        })
+        .then(response => {
+            if (response.ok) {
+                return response.json();
+            }
+            throw new Error('Network response was not ok.');
+        })
+        .then(data => alert('Уведомление отправлено!'))
+        .catch(error => alert('Ошибка при отправке уведомления: ' + error.message));
+    });
 
         // Функция для получения значения cookie по имени
         function getCookie(name) {
