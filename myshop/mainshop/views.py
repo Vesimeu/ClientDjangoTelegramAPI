@@ -54,23 +54,30 @@ def send_order(request):
 
 @csrf_exempt
 def telegram_auth(request):
-    if 'token' in request.GET:
-        token = request.GET['token']
-        user = User.objects.filter(token=token).first()
-        print(user, token)
-        if user:
-            login(request, user)
-            request.session['is_authenticated'] = True
-            request.session['telegram_id'] = str(user.telegram_id)
-            # Устанавливаем куки и перенаправляем пользователя на страницу заказа
-            response = redirect('order_page')
-            response.set_cookie('is_authenticated', True)
-            response.set_cookie('telegram_id', str(user.telegram_id))
-            return response
+    if request.method == 'GET':
+        # Проверяем наличие токена в запросе
+        if 'token' in request.GET:
+            token = request.GET['token']
+            user = User.objects.filter(token=token).first()
+            if user:
+                login(request, user)
+                request.session['is_authenticated'] = True
+                request.session['telegram_id'] = str(user.telegram_id)
+                # Устанавливаем куки и перенаправляем пользователя на страницу заказа
+                response = redirect('order_page')
+                response.set_cookie('is_authenticated', True)
+                response.set_cookie('telegram_id', str(user.telegram_id))
+                return response
+            else:
+                return JsonResponse({'status': 'error', 'message': 'Пользователь не зарегистрирован'}, status=401)
         else:
-            return JsonResponse({'status': 'error', 'message': 'Пользователь не зарегистрирован'}, status=401)
-    else:
-        return JsonResponse({'status': 'error', 'message': 'Токен не найден'}, status=400)
+            # Если токен отсутствует в запросе, перенаправляем на страницу регистрации/авторизации
+            return render(request, 'telegram_auth.html')
+
+    elif request.method == 'POST':
+        # Обработка POST-запросов
+        # Оставьте ваш текущий код обработки POST-запросов без изменений
+        pass
 
 def send_message_to_telegram(message):
     try:

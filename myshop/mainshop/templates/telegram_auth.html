@@ -6,9 +6,8 @@
 <body>
     <h1>Авторизация/Регистрация</h1>
     <p>Для авторизации или регистрации нажмите на кнопку ниже и следуйте инструкциям бота.</p>
-    <form id="telegram_auth_form" action="/telegram_auth/" method="post">
-        {% csrf_token %}  <!-- Вставляем CSRF токен -->
-        <input type="hidden" name="id" value="{{ telegram_id }}"> <!-- Отображаем переданный Telegram ID -->
+    <!-- Изменяем метод формы на GET и указываем ссылку на страницу бота -->
+    <form action="https://telegram.me/your_bot_username" method="get">
         <button type="submit" style="padding: 10px 20px; background-color: #5cb85c; color: #fff; border: none; cursor: pointer; transition: background-color 0.3s; border-radius: 4px;">Авторизация/Регистрация</button>
     </form>
 </body>
