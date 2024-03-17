@@ -55,9 +55,9 @@ def send_order(request):
 @csrf_exempt
 def telegram_auth(request):
     if request.method == 'GET':
-        # Проверяем наличие токена в запросе
-        if 'token' in request.GET:
-            token = request.GET['token']
+        # Проверяем значение токена в запросе
+        token = request.GET.get('token')
+        if token:
             user = User.objects.filter(token=token).first()
             if user:
                 login(request, user)
@@ -71,7 +71,7 @@ def telegram_auth(request):
             else:
                 return JsonResponse({'status': 'error', 'message': 'Пользователь не зарегистрирован'}, status=401)
         else:
-            # Если токен отсутствует в запросе, перенаправляем на страницу регистрации/авторизации
+            # Если токен отсутствует или пустой, отображаем страницу авторизации/регистрации
             return render(request, 'telegram_auth.html')
 
     elif request.method == 'POST':
@@ -88,10 +88,26 @@ def send_message_to_telegram(message):
         print(f"Ошибка при отправке сообщения в Telegram: {e}")
         return False
 
+def profile_view(request):
+    # Здесь необходимо получить информацию о пользователе и передать её в шаблон
+    user = request.user  # Получаем текущего пользователя
+    return render(request, 'profile.html', {'user': user})
+
+
 def order_page(request):
     try:
         telegram_id = request.COOKIES.get('telegram_id', '0')
-        return render(request, 'order.html', {'telegram_id': telegram_id})
+        print(request.session.get('is_authenticated'))
+
+        # Проверяем, авторизован ли пользователь
+        if request.session.get('is_authenticated') == None:
+            # Получаем имя пользователя и передаем его в шаблон
+            username = request.user.username
+            return render(request, 'order_auth.html', {'username': username})
+        else:
+            # Если пользователь не авторизован, используем обычный шаблон order.html
+            print(request.COOKIES)
+            return render(request, 'order.html', {'telegram_id': telegram_id})
     except Exception as e:
         print(f"Ошибка: {e}")
         return JsonResponse({'status': 'error'}, status=500)
