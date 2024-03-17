@@ -107,7 +107,12 @@ def order_page(request):
         else:
             # Если пользователь не авторизован, используем обычный шаблон order.html
             print(request.COOKIES)
-            return render(request, 'order.html', {'telegram_id': telegram_id})
+            user = User.objects.filter(telegram_id=telegram_id).first()
+            if user:
+                username = user.username
+            else:
+                username = "Пользователь" + str(telegram_id)
+            return render(request, 'order.html', {'username': username, 'telegram_id': telegram_id})
     except Exception as e:
         print(f"Ошибка: {e}")
         return JsonResponse({'status': 'error'}, status=500)

@@ -20,6 +20,12 @@
             color: #333; /* Цвет текста заголовка */
             margin-bottom: 20px;
         }
+            #welcome-message {
+            font-size: 24px; /* Размер текста */
+            color: #530; /* Цвет текста */
+            text-align: center; /* Выравнивание по центру */
+            margin-top: 2px; /* Внешний отступ сверху */
+        }
 
         #order-form {
             width: 100%;
@@ -60,8 +66,11 @@
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.1/jquery.min.js"></script>
 </head>
 <body>
+    <div id="welcome-message">
+        <h1>Добро пожаловать, {{ username }}!</h1>
+    </div>
        <div id="order-form">
-    <h1>Сайт для фриланс заказов!</h1>
+            <h1>Сайт для фриланс заказов!</h1>
     <input type="hidden" id="telegram-id" name="telegram-id" value="{{ telegram_id }}">
 
     <label for="subject" style="margin-bottom: 5px; display: block;">Тип Предмета:</label>

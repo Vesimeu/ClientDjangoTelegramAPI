@@ -4,59 +4,54 @@
     <title>Заказ</title>
     <style>
         body {
-            background-color: #f7f7f7; /* Обновленный цвет фона */
+            background-color: #f7f7f7;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            height: 100vh; /* Высота экрана */
-            margin: 0; /* Убираем отступы */
-            font-family: 'Arial', sans-serif; /* Добавляем шрифт */
+            height: 100vh;
+            margin: 0;
+            font-family: 'Arial', sans-serif;
         }
 
         h1 {
-            font-size: 32px; /* Увеличенный размер шрифта */
-            color: #333; /* Цвет текста заголовка */
+            font-size: 32px;
+            color: #333;
             margin-bottom: 20px;
         }
 
-        #order-form {
-            display: none; /* Скрытие формы заказа */
-        }
-
-        #order-button {
-            display: none; /* Скрытие кнопки заказа */
-        }
-
-        #auth-message {
-            font-size: 20px;
-            color: #555;
+        #auth-container {
             text-align: center;
         }
 
+        #auth-message {
+            font-size: 18px;
+            color: #555;
+            margin-bottom: 20px;
+        }
+
         #auth-link {
-            padding: 10px 20px;
-            background-color: #5cb85c;
+            padding: 12px 24px;
+            background-color: #007bff;
             color: #fff;
             border: none;
             cursor: pointer;
             transition: background-color 0.3s;
             border-radius: 4px;
             text-decoration: none;
+            font-size: 16px;
         }
 
         #auth-link:hover {
-            background-color: #4cae4c;
+            background-color: #0056b3;
         }
     </style>
 </head>
 <body>
-    <h1>Сайт для фриланс заказов!</h1>
-    <div id="auth-message">
-        Для совершения заказа необходимо авторизоваться.
-        <br>
-        Пожалуйста, нажмите на кнопку ниже, чтобы перейти к авторизации.
+    <div id="auth-container">
+        <h1>Для совершения заказа необходимо авторизоваться.</h1>
+        <p id="auth-message">Пожалуйста, нажмите на кнопку ниже, чтобы перейти к авторизации.</p>
+        <a id="auth-link" href="{% url 'telegram_auth' %}?token=">Авторизация/Регистрация</a>
     </div>
-    <a id="auth-link" href="{% url 'telegram_auth' %}?token=">Авторизация/Регистрация</a>
 </body>
 </html>

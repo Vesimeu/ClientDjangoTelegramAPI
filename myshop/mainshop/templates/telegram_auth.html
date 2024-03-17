@@ -2,13 +2,59 @@
 <html>
 <head>
     <title>Авторизация/Регистрация</title>
+    <style>
+        body {
+            background-color: #f7f7f7;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            font-family: 'Arial', sans-serif;
+        }
+
+        h1 {
+            font-size: 32px;
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        p {
+            font-size: 18px;
+            color: #555;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        form {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        button {
+            padding: 12px 24px;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+    </style>
 </head>
 <body>
     <h1>Авторизация/Регистрация</h1>
     <p>Для авторизации или регистрации нажмите на кнопку ниже и следуйте инструкциям бота.</p>
     <!-- Изменяем метод формы на GET и указываем ссылку на страницу бота -->
     <form action="https://t.me/WebAuthHelperBot" method="get">
-        <button type="submit" style="padding: 10px 20px; background-color: #5cb85c; color: #fff; border: none; cursor: pointer; transition: background-color 0.3s; border-radius: 4px;">Авторизация/Регистрация</button>
+        <button type="submit">Авторизация/Регистрация</button>
     </form>
 </body>
 </html>
