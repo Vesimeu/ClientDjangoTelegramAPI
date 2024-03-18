@@ -97,7 +97,7 @@ def profile_view(request):
         try:
             user = User.objects.get(telegram_id=telegram_id)
             orders = Order.objects.filter(id_client=telegram_id)
-            print("User:" , user , " orders_list: ", orders)
+            # print("User:" , user , " orders_list: ", orders)
             return render(request, 'profile.html', {'username': user.username, 'orders': orders})
         except User.DoesNotExist:
             # Если пользователя с таким telegram_id нет в базе данных, выполняем необходимые действия (например, перенаправление на страницу аутентификации)
