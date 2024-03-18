@@ -89,18 +89,42 @@ def send_message_to_telegram(message):
         return False
 
 def profile_view(request):
-    # Здесь необходимо получить информацию о пользователе и передать её в шаблон
-    user = request.user  # Получаем текущего пользователя
-    return render(request, 'profile.html', {'user': user})
+    # Получаем telegram_id из куков
+    telegram_id = request.COOKIES.get('telegram_id')
+
+    # Если telegram_id есть, пытаемся найти пользователя с таким id
+    if telegram_id:
+        try:
+            user = User.objects.get(telegram_id=telegram_id)
+            orders = Order.objects.filter(id_client=telegram_id)
+            print("User:" , user , " orders_list: ", orders)
+            return render(request, 'profile.html', {'username': user.username, 'orders': orders})
+        except User.DoesNotExist:
+            # Если пользователя с таким telegram_id нет в базе данных, выполняем необходимые действия (например, перенаправление на страницу аутентификации)
+            return redirect('telegram_auth')
+    else:
+        # Если telegram_id отсутствует в куках, также перенаправляем на страницу аутентификации
+        return redirect('telegram_auth')
+
+def delete_order(request, order_id):
+    # Получаем заказ для удаления
+    order = Order.objects.get(pk=order_id)
+
+    # Удаляем заказ
+    order.delete()
+
+    # Перенаправляем пользователя обратно на страницу профиля
+    return redirect('profile')
 
 
 def order_page(request):
     try:
         telegram_id = request.COOKIES.get('telegram_id', '0')
         print(request.session.get('is_authenticated'))
+        print(request.COOKIES.get('is_authenticated'))
 
         # Проверяем, авторизован ли пользователь
-        if request.session.get('is_authenticated') == None:
+        if request.COOKIES.get('is_authenticated') == None:
             # Получаем имя пользователя и передаем его в шаблон
             username = request.user.username
             return render(request, 'order_auth.html', {'username': username})

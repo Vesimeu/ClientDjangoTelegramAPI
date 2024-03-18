@@ -1,13 +1,35 @@
-<!-- mainshop/templates/profile.html -->
+<!-- profile.html -->
 
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Профиль пользователя</title>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Profile</title>
 </head>
 <body>
-    <h1>Профиль пользователя</h1>
-    <p>Имя пользователя: {{ user.username }}</p>
-    <!-- Добавьте другие данные профиля, которые вы хотите отобразить -->
+    <h1>Welcome, {{ username }}!</h1>
+
+    <h2>Your Orders:</h2>
+
+    {% if orders %}
+        <ul>
+            {% for order in orders %}
+                <li>
+                    Order ID: {{ order.id }}<br>
+                    Subject: {{ order.subject }}<br>
+                    Description: {{ order.description }}<br>
+                    Price: {{ order.price }}<br>
+                    <form action="{% url 'delete_order' order.id %}" method="post">
+                        {% csrf_token %}
+                        <button type="submit">Delete</button>
+                    </form>
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>No orders found.</p>
+    {% endif %}
 </body>
 </html>
