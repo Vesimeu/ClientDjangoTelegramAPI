@@ -7,7 +7,6 @@ from mainshop.views import order_page
 from mainshop.views import telegram_auth
 from mainshop.views import profile_view , delete_order
 from django.contrib.auth import views as auth_views
-
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('order/', include('mainshop.urls')),

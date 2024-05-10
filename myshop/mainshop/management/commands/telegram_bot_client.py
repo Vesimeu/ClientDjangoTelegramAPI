@@ -1,84 +1,13 @@
-# myshop/mainshop/management/commands/telegram_bot_client.py
-
 import uuid
-import json
 import requests
-from django.core.management.base import BaseCommand
-from telegram import Bot, Update, InlineKeyboardButton, InlineKeyboardMarkup
-from telegram.ext import CommandHandler, CallbackQueryHandler, Updater
-from telegram.utils.request import Request
+from aiogram import Bot, Dispatcher, types
+from aiogram.contrib.middlewares.logging import LoggingMiddleware
+from aiogram.utils import executor
+from django.core.management import BaseCommand
+from asgiref.sync import sync_to_async
+
 from myshop import settings
-from mainshop import models
-
-Order = models.Order
-User = models.User
-
-
-class TelegramBot:
-    def __init__(self, bot_token):
-        self.bot_token = bot_token
-        self.updater = self._create_updater()
-
-    def _create_updater(self):
-        request = Request(connect_timeout=15)
-        bot = Bot(request=request, token=self.bot_token)
-        return Updater(bot=bot, use_context=True)
-
-    def start(self):
-        self.updater.start_polling()
-        self.updater.idle()
-
-    def generate_token(self, user_id):
-        return uuid.uuid4().hex
-
-    def send_data_to_server(self, user_id, token, chat_id):
-        url = 'http://127.0.0.1:8000/telegram_auth/'
-        params = {'token': token}
-        print("Request data:", params)
-        response = requests.get(url, params=params)
-        print("Response status code:", response.status_code)
-
-        if response.status_code == 200:
-            # Сохраняем токен в базе данных только если пользователь существует
-            user = User.objects.filter(telegram_id=user_id).first()
-            if user:
-                print("Сохранил токен в базу данных")
-                user.token = token
-                user.save()
-                print("Данные успешно отправлены на сервер Django")
-            else:
-                print("Ошибка: пользователь не найден в базе данных")
-                self.send_auth_link_message(chat_id, token)  # Отправить ссылку на авторизацию
-        else:
-            print("Ошибка при отправке данных на сервер Django:", response.text)
-            self.send_auth_link_message(chat_id, token)  # Отправить ссылку на авторизацию
-
-
-    def send_auth_link_message(self, chat_id, token):
-        auth_link = f'http://127.0.0.1:8000/telegram_auth/?token={token}'
-        keyboard = [[InlineKeyboardButton("Авторизация", url=auth_link)]]
-        reply_markup = InlineKeyboardMarkup(keyboard)
-        self.updater.bot.send_message(chat_id=chat_id, text=f"Для авторизации перейдите по ссылке ниже:", reply_markup=reply_markup)
-
-    def handle_go_to_site(self, update: Update, context):
-        context.bot.send_message(chat_id=update.effective_chat.id, text="Вы перешли на сайт.")
-        user_id = update.effective_user.id
-        token = self.generate_token(user_id)
-        print(token, user_id)
-
-        # Сохраняем токен в базе данных
-        user = User.objects.filter(telegram_id=user_id).first()
-        if user:
-            user.token = token
-            user.save()
-            print("Токен успешно сохранен в базе данных")
-        else:
-            print("Ошибка: пользователь не найден в базе данных")
-
-        # Отправляем данные на сервер Django для авторизации
-        self.send_data_to_server(user_id, token, update.effective_chat.id)
-        self.send_auth_link_message(update.effective_chat.id, token)
-
+from mainshop.models import User
 
 class Command(BaseCommand):
     help = 'Starts the telegram bot for customers.'
@@ -86,58 +15,126 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         bot_token = settings.TOKEN_BOT_CLIENT
         telegram_bot = TelegramBot(bot_token)
-        dp = telegram_bot.updater.dispatcher
+        telegram_bot.start_bot()
 
-        # Обработчик команды /start
-        def start(update: Update, context):
-            user_id = update.effective_user.id
-            user = User.objects.filter(telegram_id=user_id).first()
+class TelegramBot:
+    def __init__(self, bot_token):
+        self.bot = Bot(token=bot_token)
+        self.dp = Dispatcher(self.bot)
+        self.dp.middleware.setup(LoggingMiddleware())
 
+        # Регистрация обработчиков команд
+        self.dp.register_message_handler(self.start, commands=['start'])
+        self.dp.register_message_handler(self.auth, commands=['auth'])
+        self.dp.register_message_handler(self.reg, commands=['reg'])
+        self.dp.register_callback_query_handler(self.handle_callback, lambda c: True)
+        self.dp.register_message_handler(self.handle_go_to_site, commands=['go_to_site'])
+
+    async def start(self, message: types.Message):
+        user_id = message.from_user.id
+        user = await sync_to_async(User.objects.filter)(telegram_id=user_id)
+        user = await sync_to_async(lambda queryset: queryset.first())(user)
+
+        if user:
+            await message.answer("Вы уже зарегистрированы.")
+        else:
+            keyboard = types.InlineKeyboardMarkup()
+            button = types.InlineKeyboardButton("Регистрация", callback_data='registration')
+            keyboard.add(button)
+            await message.answer("Привет! Для регистрации нажмите на кнопку ниже.", reply_markup=keyboard)
+
+    async def auth(self, message: types.Message):
+        user_id = message.from_user.id
+        user = await sync_to_async(User.objects.filter)(telegram_id=user_id)
+        user = await sync_to_async(lambda queryset: queryset.first())(user)
+
+        if user:
+            token = self.generate_token(user_id)
+            await self.send_auth_link_message(message.chat.id, token)
+        else:
+            await message.answer("Вы еще не зарегистрированы.")
+
+    async def reg(self, message: types.Message):
+        user_id = message.from_user.id
+        user = await sync_to_async(User.objects.filter)(telegram_id=user_id)
+        user = await sync_to_async(lambda queryset: queryset.first())(user)
+
+        if user:
+            await self.auth(message)  # Перенаправляем на авторизацию, если пользователь уже зарегистрирован
+        else:
+            await self.handle_registration(message)  # Регистрируем, если пользователь не зарегистрирован
+
+    async def handle_registration(self, message: types.Message):
+        user_id = message.from_user.id
+        user = await sync_to_async(User.objects.filter)(telegram_id=user_id)
+        user = await sync_to_async(lambda queryset: queryset.first())(user)
+
+        if user:
+            await message.answer("Вы уже зарегистрированы.")
+        else:
+            token = self.generate_token(user_id)
+            await sync_to_async(self.send_data_to_server)(user_id, token)
+            await self.send_auth_link_message(message.chat.id, token)
+
+
+    async def handle_callback(self, query: types.CallbackQuery):
+        if query.data == 'registration':
+            await self.handle_registration(query.message)
+
+    async def handle_go_to_site(self, message: types.Message):
+        await message.answer("Вы перешли на сайт.")
+        user_id = message.from_user.id
+        token = self.generate_token(user_id)
+        user = await sync_to_async(User.objects.filter)(telegram_id=user_id)
+        user = await sync_to_async(lambda queryset: queryset.first())(user)
+
+        if user:
+            # user.token = token
+            # user.save()
+            await sync_to_async(self.save_user_token)(user, token)
+            await message.answer("Токен успешно сохранен в базе данных")
+        else:
+            await message.answer("Ошибка: пользователь не найден в базе данных")
+
+        await self.send_data_to_server(user_id, token, message.chat.id)
+        await self.send_auth_link_message(message.chat.id, token)
+
+    async def send_auth_link_message(self, chat_id, token):
+        auth_link = f'http://127.0.0.1:8000/telegram_auth/?token={token}'
+        keyboard = types.InlineKeyboardMarkup()
+        button = types.InlineKeyboardButton("Авторизация", url=auth_link)
+        keyboard.add(button)
+        await self.bot.send_message(chat_id=chat_id, text="Для авторизации перейдите по ссылке ниже:", reply_markup=keyboard)
+
+    def generate_token(self, user_id):
+        return uuid.uuid4().hex
+
+    def save_user_token(self, user, token):
+        user.token = token
+        user.save()
+
+    async def send_data_to_server(self, user_id, token, chat_id):
+        url = 'http://127.0.0.1:8000/telegram_auth/'
+        params = {'token': token}
+        print("Request data:", params)
+        response = requests.get(url, params=params)
+        print("Response status code:", response.status_code)
+
+        if response.status_code == 200:
+            user = await sync_to_async(User.objects.filter)(telegram_id=user_id)
+            user = await sync_to_async(lambda queryset: queryset.first())(user)
             if user:
-                context.bot.send_message(chat_id=update.effective_chat.id, text="Вы уже зарегистрированы.")
+                print("Сохранил токен в базу данных")
+                # user.token = token
+                # user.save()
+                await sync_to_async(self.save_user_token)(user, token)
+                print("Данные успешно отправлены на сервер Django")
             else:
-                keyboard = [[InlineKeyboardButton("Регистрация", callback_data='registration')]]
-                reply_markup = InlineKeyboardMarkup(keyboard)
-                context.bot.send_message(chat_id=update.effective_chat.id,
-                                         text="Привет! Для регистрации нажмите на кнопку ниже.",
-                                         reply_markup=reply_markup)
+                print("Ошибка: пользователь не найден в базе данных")
+                await self.send_auth_link_message(chat_id, token)
+        else:
+            print("Ошибка при отправке данных на сервер Django:", response.text)
+            await self.send_auth_link_message(chat_id, token)
 
-        # Обработчик команды /auth
-        def auth(update: Update, context):
-            user_id = update.effective_user.id
-            user = User.objects.filter(telegram_id=user_id).first()
-
-            if user:
-                token = telegram_bot.generate_token(user_id)
-                telegram_bot.send_auth_link_message(update.effective_chat.id, token)
-            else:
-                context.bot.send_message(chat_id=update.effective_chat.id, text="Вы еще не зарегистрированы.")
-
-        # Обработчик команды /reg
-        def reg(update: Update, context):
-            user_id = update.effective_user.id
-            user = User.objects.filter(telegram_id=user_id).first()
-
-            if user:
-                auth(update, context)  # Перенаправляем на авторизацию, если пользователь уже зарегистрирован
-            else:
-                handle_registration(update, context)  # Регистрируем, если пользователь не зарегистрирован
-
-        def handle_registration(update: Update, context):
-            user_id = update.effective_user.id
-            user = User.objects.filter(telegram_id=user_id).first()
-
-            if user:
-                context.bot.send_message(chat_id=update.effective_chat.id, text="Вы уже зарегистрированы.")
-            else:
-                token = telegram_bot.generate_token(user_id)
-                telegram_bot.send_data_to_server(user_id, token)
-                telegram_bot.send_auth_link_message(update.effective_chat.id, token)
-
-        dp.add_handler(CommandHandler('start', start))
-        dp.add_handler(CommandHandler('auth', auth))
-        dp.add_handler(CommandHandler('reg', reg))
-        dp.add_handler(CallbackQueryHandler(handle_registration, pattern='registration'))
-        dp.add_handler(CommandHandler('go_to_site', telegram_bot.handle_go_to_site))
-
-        telegram_bot.start()
+    def start_bot(self):
+        executor.start_polling(self.dp, skip_updates=True)
