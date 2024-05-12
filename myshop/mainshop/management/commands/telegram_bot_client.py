@@ -7,8 +7,10 @@ from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.types.web_app_info import WebAppInfo
 from django.core.management import BaseCommand
 from asgiref.sync import sync_to_async
+import urllib3
+urllib3.disable_warnings() # disable ssl warning
 
-
+main_url = '127.0.0.1:8000'
 from myshop import settings
 from mainshop.models import User
 
@@ -103,7 +105,8 @@ class TelegramBot:
         await self.send_auth_link_message(message.chat.id, token)
 
     async def send_auth_link_message(self, chat_id, token):
-        auth_link = f'https://127.0.0.1:8000/telegram_auth/?token={token}'
+        auth_link = f'https://{main_url}/telegram_auth/?token={token}'
+
 
         # Создаем клавиатуру
         keyboard = types.InlineKeyboardMarkup()
@@ -128,10 +131,10 @@ class TelegramBot:
         user.save()
 
     async def send_data_to_server(self, user_id, token, chat_id):
-        url = 'https://127.0.0.1:8000/telegram_auth/'
+        url = f'https://{main_url}/telegram_auth/'
         params = {'token': token}
         print("Request data:", params)
-        response = requests.get(url, params=params,verify=False)
+        response = requests.get(url, params=params , verify=False)
         print("Response status code:", response.status_code)
 
         if response.status_code == 200:

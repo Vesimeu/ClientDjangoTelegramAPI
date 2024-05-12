@@ -76,19 +76,28 @@ class TelegramBot:
         order.accepted = False
         order.save()
 
+    @database_sync_to_async
+    def get_all_orders(self):
+        return list(Order.objects.all())
+
     async def order_list(self, message: types.Message): #Тут упал бот
         orders = await self.get_all_orders()
+        print(orders)
         if orders:
             order_list_message = "Список заказов:\n"
             for order in orders:
-                order_list_message += f"Заказ #{order.id} от @{order.nickname}:\n{order.description}\nЦена: {order.price}\n\n"
+                order_list_message += f"Заказ #{order.id}:\n"
+                order_list_message += f"Предмет: {order.subject}\n"
+                order_list_message += f"Описание: {order.description}\n"
+                order_list_message += f"Цена: {order.price}\n"
+                order_list_message += f"Статус принятия: {'Принят' if order.accepted else 'Не принят'}\n"
+                order_list_message += f"Статус заказа: {'Активен' if order.status_orders else 'Не активен'}\n"
+                order_list_message += f"ID клиента: {order.id_client}\n"
+                order_list_message += f"ID исполнителя: {order.id_executor}\n"
+                order_list_message += f"Дата создания: {order.created_at}\n\n"
             await message.answer(order_list_message)
         else:
             await message.answer("Список заказов пуст.")
-
-    @database_sync_to_async
-    def get_all_orders(self):
-        return Order.objects.all()
 
     def start_bot(self):
         executor.start_polling(self.dp, skip_updates=True)
