@@ -3,8 +3,11 @@ import requests
 from aiogram import Bot, Dispatcher, types
 from aiogram.contrib.middlewares.logging import LoggingMiddleware
 from aiogram.utils import executor
+from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+from aiogram.types.web_app_info import WebAppInfo
 from django.core.management import BaseCommand
 from asgiref.sync import sync_to_async
+
 
 from myshop import settings
 from mainshop.models import User
@@ -82,7 +85,7 @@ class TelegramBot:
             await self.handle_registration(query.message)
 
     async def handle_go_to_site(self, message: types.Message):
-        await message.answer("Вы перешли на сайт.")
+        await message.answer("Можете переходить на сайт!.")
         user_id = message.from_user.id
         token = self.generate_token(user_id)
         user = await sync_to_async(User.objects.filter)(telegram_id=user_id)
@@ -92,7 +95,7 @@ class TelegramBot:
             # user.token = token
             # user.save()
             await sync_to_async(self.save_user_token)(user, token)
-            await message.answer("Токен успешно сохранен в базе данных")
+            await message.answer("Ваш токен успешно сохранен в базе данных")
         else:
             await message.answer("Ошибка: пользователь не найден в базе данных")
 
@@ -100,11 +103,22 @@ class TelegramBot:
         await self.send_auth_link_message(message.chat.id, token)
 
     async def send_auth_link_message(self, chat_id, token):
-        auth_link = f'http://127.0.0.1:8000/telegram_auth/?token={token}'
+        auth_link = f'https://127.0.0.1:8000/telegram_auth/?token={token}'
+
+        # Создаем клавиатуру
         keyboard = types.InlineKeyboardMarkup()
-        button = types.InlineKeyboardButton("Авторизация", url=auth_link)
-        keyboard.add(button)
-        await self.bot.send_message(chat_id=chat_id, text="Для авторизации перейдите по ссылке ниже:", reply_markup=keyboard)
+
+        # Добавляем кнопку "Авторизация"
+        website_button = types.InlineKeyboardButton("Авторизация", url=auth_link)
+        keyboard.add(website_button)
+
+        # Добавляем кнопку "Open in WebApp"
+        webapp_button = types.InlineKeyboardButton("Open in WebApp", web_app=WebAppInfo(url=auth_link))
+        keyboard.row(webapp_button)  # Добавляем кнопку в ту же строку, что и кнопка "Авторизация"
+
+        # Отправляем сообщение с клавиатурой
+        await self.bot.send_message(chat_id=chat_id, text="Для авторизации перейдите по ссылке ниже:",
+                                    reply_markup=keyboard)
 
     def generate_token(self, user_id):
         return uuid.uuid4().hex
@@ -114,10 +128,10 @@ class TelegramBot:
         user.save()
 
     async def send_data_to_server(self, user_id, token, chat_id):
-        url = 'http://127.0.0.1:8000/telegram_auth/'
+        url = 'https://127.0.0.1:8000/telegram_auth/'
         params = {'token': token}
         print("Request data:", params)
-        response = requests.get(url, params=params)
+        response = requests.get(url, params=params,verify=False)
         print("Response status code:", response.status_code)
 
         if response.status_code == 200:

@@ -12,6 +12,7 @@ urlpatterns = [
     path('order/', include('mainshop.urls')),
     path('', order_page, name='home'),  # обрабатывает корневой URL
     path('telegram_auth/', telegram_auth, name='telegram_auth'),
+    path('webapp/', telegram_auth, name='telegram_auth'),
     path('accounts/login/', auth_views.LoginView.as_view(), name='login'),
     path('profile/', profile_view, name='profile'),
     path('delete_order/<int:order_id>/', delete_order, name='delete_order'),

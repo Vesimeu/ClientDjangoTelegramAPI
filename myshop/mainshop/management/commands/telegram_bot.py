@@ -76,7 +76,7 @@ class TelegramBot:
         order.accepted = False
         order.save()
 
-    async def order_list(self, message: types.Message):
+    async def order_list(self, message: types.Message): #Тут упал бот
         orders = await self.get_all_orders()
         if orders:
             order_list_message = "Список заказов:\n"
