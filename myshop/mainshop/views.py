@@ -87,17 +87,34 @@ def notify_user(request):
         order_id = order_data.get('id')
         description = order_data.get('description')
         client_id = order_data.get('id_client')
+        executor_id = order_data.get('id_executor')
+
+
+        # Получаем пользователя по Telegram ID
+        user = User.objects.filter(telegram_id=client_id).first()
+        if not user:
+            return JsonResponse({'status': 'error', 'message': 'Пользователь не найден'}, status=404)
+        username = user.username
+
+        executor = User.objects.filter(telegram_id=executor_id).first()
+        print(executor)
+        if not executor:
+            return JsonResponse({'status': 'error', 'message': 'Исполнитель не найден'}, status=404)
+        executor_name = executor.username
+
+        # Создаем сообщение для отправки
+        message = f"Уважаемый @{username}, ваш заказ '{description}' принят пользователем @{executor_name}. \nСпасибо за ваш заказ!"
 
         # Код для уведомления пользователя через клиентского бота
         try:
-            # Ваш код для отправки уведомления через клиентского бота
-            send_message_to_telegram_client(f"Ваш заказ '{description}' принят!", client_id)
+            send_message_to_telegram_client(message, client_id)
             return JsonResponse({'status': 'ok'})
         except Exception as e:
             print(f"Ошибка при отправке уведомления пользователю: {e}")
             return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
     else:
         return JsonResponse({'status': 'error'}, status=400)
+
 
 
 

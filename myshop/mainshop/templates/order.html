@@ -1,13 +1,15 @@
-<!-- store/templates/order.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Order</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Roboto', sans-serif;
             margin: 0;
             padding: 0;
             display: flex;
@@ -15,17 +17,33 @@
             align-items: center;
             justify-content: center;
             height: 100vh;
-            background-color: #f7f7f7;
+            background-color: #f0f2f5;
+            overflow: hidden;
         }
 
         #order-form {
             max-width: 90%;
             width: 400px;
             background-color: #fff;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
             margin: 20px;
+            animation: fadeInUp 1s;
+        }
+
+        #order-form h1 {
+            text-align: center;
+            font-size: 24px;
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        label {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 5px;
+            display: block;
         }
 
         input[type="number"],
@@ -33,28 +51,67 @@
         select,
         textarea {
             width: 100%;
-            padding: 10px;
-            margin-bottom: 10px;
+            padding: 12px;
+            margin-bottom: 15px;
             border: 1px solid #ccc;
-            border-radius: 4px;
+            border-radius: 8px;
             font-size: 16px;
             box-sizing: border-box;
+            transition: border-color 0.3s;
+        }
+
+        input:focus,
+        select:focus,
+        textarea:focus {
+            border-color: #007bff;
+            outline: none;
         }
 
         #order-button {
+            padding: 12px 20px;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.2s;
+            width: 100%;
+            font-size: 18px;
+            border-radius: 8px;
+        }
+
+        #order-button:hover {
+            background-color: #0056b3;
+            transform: translateY(-2px);
+        }
+
+        #order-button:active {
+            background-color: #004080;
+            transform: translateY(0);
+        }
+
+        .profile-link {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+        }
+
+        .profile-link a {
             padding: 10px 20px;
-            background-color: #5cb85c;
+            background-color: #007bff;
             color: #fff;
             border: none;
             cursor: pointer;
             transition: background-color 0.3s;
-            width: 100%;
-            font-size: 18px;
-            border-radius: 4px;
+            border-radius: 8px;
+            text-decoration: none;
         }
 
-        #order-button:hover {
-            background-color: #4cae4c;
+        .profile-link a:hover {
+            background-color: #0056b3;
+        }
+
+        .profile-link a i {
+            margin-right: 5px;
         }
 
         @media (max-width: 600px) {
@@ -62,85 +119,93 @@
                 width: 90%;
             }
         }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translate3d(0, 40px, 0);
+            }
+            to {
+                opacity: 1;
+                transform: translate3d(0, 0, 0);
+            }
+        }
     </style>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.1/jquery.min.js"></script>
 </head>
 <body>
-    <div id="welcome-message">
+    <div id="welcome-message" class="animate__animated animate__fadeIn">
         <h1>Добро пожаловать, {{ username }}!</h1>
     </div>
-       <div id="order-form">
-            <h1>Сайт для фриланс заказов!</h1>
-    <input type="hidden" id="telegram-id" name="telegram-id" value="{{ telegram_id }}">
+    <div id="order-form" class="animate__animated animate__fadeInUp">
+        <h1>Сайт для фриланс заказов!</h1>
+        <input type="hidden" id="telegram-id" name="telegram-id" value="{{ telegram_id }}">
 
-    <label for="subject" style="margin-bottom: 5px; display: block;">Тип Предмета:</label>
-    <select id="subject" name="subject" style="margin-bottom: 10px; width: calc(100% - 20px); padding: 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 16px; box-sizing: border-box;">
-        <option value="" selected disabled>Выберите тип предмета</option>
-        <option value="1">Математика</option>
-        <option value="2">Информатика</option>
-        <option value="3">Начертательная геометрия</option>
-        <option value="4">УИР</option>
-    </select>
+        <label for="subject">Тип Предмета:</label>
+        <select id="subject" name="subject">
+            <option value="" selected disabled>Выберите тип предмета</option>
+            <option value="1">Математика</option>
+            <option value="2">Информатика</option>
+            <option value="3">Начертательная геометрия</option>
+            <option value="4">УИР</option>
+        </select>
 
-    <label for="order-description" style="margin-bottom: 5px; display: block;">Описание заказа:</label>
-    <textarea type="text" id="order-description" name="order-description" placeholder="Введите описание заказа" autocomplete="order-description" style="margin-bottom: 10px; width: calc(100% - 20px); padding: 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 16px; box-sizing: border-box;"></textarea>
+        <label for="order-description">Описание заказа:</label>
+        <textarea id="order-description" name="order-description" placeholder="Введите описание заказа"></textarea>
 
-    <label for="price" style="margin-bottom: 5px; display: block;">Цена:</label>
-    <input type="number" id="price" name="price" placeholder="Введите цену заказа" autocomplete="price" style="margin-bottom: 10px; width: calc(100% - 20px); padding: 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 16px; box-sizing: border-box;">
+        <label for="price">Цена:</label>
+        <input type="number" id="price" name="price" placeholder="Введите цену заказа">
 
-    <button id="order-button">Сделать заказ</button>
+        <button id="order-button">Сделать заказ</button>
     </div>
-       <div style="position: absolute; top: 10px; right: 10px;">
-    <a href="{% url 'profile' %}" style="padding: 10px 20px; background-color: #5cb85c; color: #fff; border: none; cursor: pointer; transition: background-color 0.3s; border-radius: 4px;">Профиль</a>
+    <div class="profile-link">
+        <a href="{% url 'profile' %}"><i class="fa fa-user"></i>Профиль</a>
     </div>
-
 
     <script type="text/javascript">
         document.getElementById('order-button').addEventListener('click', function() {
-        const subject = document.getElementById('subject').value;
-        const orderDescription = document.getElementById('order-description').value;
-        const price = document.getElementById('price').value;
-        const telegramId = document.getElementById('telegram-id').value; // Получаем telegram_id
+            const subject = document.getElementById('subject').value;
+            const orderDescription = document.getElementById('order-description').value;
+            const price = document.getElementById('price').value;
+            const telegramId = document.getElementById('telegram-id').value;
 
-        if (!subject.trim()) {
-            alert('Введите тип предмета.');
-            return;
-        }
-        if (!orderDescription.trim()) {
-            alert('Введите описание заказа.');
-            return;
-        }
-        if (!price.trim()) {
-            alert('Введите цену заказа.');
-            return;
-        }
-
-        fetch('/order/send_order/', {
-            method: 'POST',
-            headers: {
-                'X-CSRFToken': getCookie('csrftoken'),
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ 'subject': subject, 'order_description': orderDescription, 'price': price, 'id_client': telegramId }) // Добавляем telegram_id
-        })
-        .then(response => {
-            if (response.ok) {
-                return response.json();
+            if (!subject.trim()) {
+                alert('Введите тип предмета.');
+                return;
             }
-            throw new Error('Network response was not ok.');
-        })
-        .then(data => alert('Уведомление отправлено!'))
-        .catch(error => alert('Ошибка при отправке уведомления: ' + error.message));
-    });
+            if (!orderDescription.trim()) {
+                alert('Введите описание заказа.');
+                return;
+            }
+            if (!price.trim()) {
+                alert('Введите цену заказа.');
+                return;
+            }
 
-        // Функция для получения значения cookie по имени
+            fetch('/order/send_order/', {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': getCookie('csrftoken'),
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ 'subject': subject, 'order_description': orderDescription, 'price': price, 'id_client': telegramId })
+            })
+            .then(response => {
+                if (response.ok) {
+                    return response.json();
+                }
+                throw new Error('Network response was not ok.');
+            })
+            .then(data => alert('Уведомление отправлено!'))
+            .catch(error => alert('Ошибка при отправке уведомления: ' + error.message));
+        });
+
         function getCookie(name) {
             let cookieValue = null;
             if (document.cookie && document.cookie !== '') {
                 const cookies = document.cookie.split(';');
                 for (let i = 0; i < cookies.length; i++) {
                     const cookie = cookies[i].trim();
-                    // Находим нужный cookie
                     if (cookie.substring(0, name.length + 1) === (name + '=')) {
                         cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
                         break;

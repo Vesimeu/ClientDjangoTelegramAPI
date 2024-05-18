@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>User Profile</title>
+    <title>Профиль пользователя</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -97,7 +97,7 @@
 <body>
     <a class="back-button" href="javascript:history.back()">Назад</a>
     <div class="container">
-        <h1>Добро пожаловать, {{ username }}!</h1>
+        <h1>Это ваш профиль, {{ username }}!</h1>
 
         <h2>Ваши заказы:</h2>
 
@@ -107,15 +107,26 @@
                     <li class="order">
                         <div class="order-details">
                             <div>
-                                <strong>Order ID:</strong> {{ order.id }}<br>
-                                <strong>Subject:</strong> {{ order.subject }}<br>
-                                <strong>Description:</strong> {{ order.description }}<br>
-                                <strong>Price:</strong> ${{ order.price }}<br>
+                                <strong>Номер заказа:</strong> {{ order.id }}<br>
+                                <strong>Предмет:</strong> {{ order.get_subject_display }}<br>
+                                <strong>Описание:</strong> {{ order.description }}<br>
+                                <strong>Цена:</strong> {{ order.price }} руб.<br>
+                                <strong>Статус:</strong>
+                                {% if order.status_orders == 'pending' %}
+                                    В ожидании
+                                {% elif order.status_orders == 'in_progress' %}
+                                    В процессе
+                                {% elif order.status_orders == 'completed' %}
+                                    Завершен
+                                {% else %}
+                                    Неизвестно
+                                {% endif %}
+                                <br>
                             </div>
                             <div class="order-actions">
                                 <form action="{% url 'delete_order' order.id %}" method="post" onsubmit="return confirm('Вы уверены, что хотите удалить этот заказ?');">
                                     {% csrf_token %}
-                                    <button type="submit">Delete</button>
+                                    <button type="submit">Удалить</button>
                                 </form>
                             </div>
                         </div>
@@ -123,7 +134,7 @@
                 {% endfor %}
             </ul>
         {% else %}
-            <p class="no-orders">No orders found.</p>
+            <p class="no-orders">Заказы не найдены.</p>
         {% endif %}
 
         {% if order_deleted %}

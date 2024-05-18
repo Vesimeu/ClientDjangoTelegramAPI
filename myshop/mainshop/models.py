@@ -10,11 +10,17 @@ class Order(models.Model):
         ('4', 'УИР'),
     ]
 
+    STATUS_CHOICES = [
+        ('pending', 'В ожидании'),
+        ('in_progress', 'В процессе'),
+        ('completed', 'Завершен'),
+    ]
+
     subject = models.CharField(max_length=50, default='Не указано', choices=SUBJECT_CHOICES)
     description = models.TextField()
     price = models.DecimalField(max_digits=10, decimal_places=2)
     accepted = models.BooleanField(default=False)
-    status_orders = models.BooleanField(default=False)
+    status_orders = models.CharField(max_length=20, default='pending', choices=STATUS_CHOICES)
     id_client = models.BigIntegerField(default=0)
     id_executor = models.BigIntegerField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)

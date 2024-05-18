@@ -48,6 +48,7 @@ class TelegramBot:
             try:
                 order = await self.get_order(order_id)
                 await self.process_order(order)
+                await self.add_executor(order, message.chat.id )
                 await self.notify_user(order)
                 await message.answer(f"Заказ #{order_id} принят.")
             except Order.DoesNotExist:
@@ -59,7 +60,8 @@ class TelegramBot:
         order_data = {
             "id": order.id,
             "description": order.description,
-            "id_client": order.id_client
+            "id_client": order.id_client,
+            "id_executor": order.id_executor,
         }
         headers = {
             "Referer": "https://127.0.0.1:8000/notify_user/"
@@ -78,6 +80,11 @@ class TelegramBot:
     @database_sync_to_async
     def process_order(self, order):
         order.accepted = True
+        order.save()
+
+    @database_sync_to_async
+    def add_executor(self, order,chat_id):
+        order.id_executor = chat_id
         order.save()
 
     async def decline_order(self, message: types.Message):
@@ -113,7 +120,14 @@ class TelegramBot:
                 order_list_message += f"Описание: {order.description}\n"
                 order_list_message += f"Цена: {order.price}\n"
                 order_list_message += f"Статус принятия: {'Принят' if order.accepted else 'Не принят'}\n"
-                order_list_message += f"Статус заказа: {'Активен' if order.status_orders else 'Не активен'}\n"
+                status_orders_text = ''
+                if order.status_orders == 'pending':
+                    status_orders_text = 'В ожидании'
+                elif order.status_orders == 'in_progress':
+                    status_orders_text = 'В процессе'
+                elif order.status_orders == 'completed':
+                    status_orders_text = 'Завершен'
+                order_list_message += f"Статус заказа: {status_orders_text}\n"
                 order_list_message += f"ID клиента: {order.id_client}\n"
                 order_list_message += f"ID исполнителя: {order.id_executor}\n"
                 order_list_message += f"Дата создания: {order.created_at}\n\n"

@@ -43,6 +43,7 @@ class TelegramBot:
 
         if user:
             await message.answer("Вы уже зарегистрированы.")
+            await self.auth(message)
         else:
             keyboard = types.InlineKeyboardMarkup()
             button = types.InlineKeyboardButton("Регистрация", callback_data='registration')
@@ -70,21 +71,16 @@ class TelegramBot:
         else:
             await self.handle_registration(message)  # Регистрируем, если пользователь не зарегистрирован
 
-    # async def handle_registration(self, message: types.Message):
-    #     user_id = message.from_user.id
-    #     user = await sync_to_async(User.objects.filter)(telegram_id=user_id)
-    #     user = await sync_to_async(lambda queryset: queryset.first())(user)
-    #
-    #     if user:
-    #         await message.answer("Вы уже зарегистрированы.")
-    #     else:
-    #         token = self.generate_token(user_id)
-    #         await sync_to_async(self.send_data_to_server)(user_id, token)
-    #         await self.send_auth_link_message(message.chat.id, token)
 
     async def handle_registration(self, message: types.Message):
         user_id = message.from_user.id
-        user, created = await sync_to_async(User.objects.get_or_create)(telegram_id=user_id)
+        username = message.from_user.username  # Получаем username из сообщения
+
+        # Создаем пользователя с telegram_id и username
+        user, created = await sync_to_async(User.objects.get_or_create)(
+            telegram_id=user_id,
+            defaults={'username': username}
+        )
 
         if created:
             # Если пользователь был создан в базе данных, создаем и сохраняем токен
@@ -111,8 +107,6 @@ class TelegramBot:
         user = await sync_to_async(lambda queryset: queryset.first())(user)
 
         if user:
-            # user.token = token
-            # user.save()
             await sync_to_async(self.save_user_token)(user, token)
             await message.answer("Ваш токен успешно сохранен в базе данных")
         else:
@@ -151,11 +145,6 @@ class TelegramBot:
     # def get_order(self, order_id):
     #     return Order.objects.get(id=order_id)
 
-    async def notify_user(self, order): #Функция которая уведомляет пользователя о заказе
-        try:
-            await self.bot.send_message(order.id_client, f"Ваш заказ '{order.description}' был принят.")
-        except Exception as e:
-            print(f"Ошибка при отправке уведомления пользователю: {e}")
 
     async def send_data_to_server(self, user_id, token, chat_id):
         url = f'https://{main_url}/telegram_auth/'
