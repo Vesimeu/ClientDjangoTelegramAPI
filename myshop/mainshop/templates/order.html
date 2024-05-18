@@ -1,66 +1,66 @@
 <!-- store/templates/order.html -->
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Заказ</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order</title>
     <style>
         body {
-            background-color: #f7f7f7; /* Обновленный цвет фона */
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            height: 100vh; /* Высота экрана */
-            margin: 0; /* Убираем отступы */
-            font-family: 'Arial', sans-serif; /* Добавляем шрифт */
-        }
-
-        h1 {
-            font-size: 32px; /* Увеличенный размер шрифта */
-            color: #333; /* Цвет текста заголовка */
-            margin-bottom: 20px;
-        }
-            #welcome-message {
-            font-size: 24px; /* Размер текста */
-            color: #530; /* Цвет текста */
-            text-align: center; /* Выравнивание по центру */
-            margin-top: 2px; /* Внешний отступ сверху */
+            height: 100vh;
+            background-color: #f7f7f7;
         }
 
         #order-form {
-            width: 100%;
-            max-width: 500px; /* Максимальная ширина формы */
-            background: #fff; /* Фон для формы */
+            max-width: 90%;
+            width: 400px;
+            background-color: #fff;
             padding: 20px;
             border-radius: 8px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Тень для формы */
-            margin: 0 20px; /* Отступы слева и справа */
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin: 20px;
+        }
+
+        input[type="number"],
+        input[type="text"],
+        select,
+        textarea {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 16px;
+            box-sizing: border-box;
         }
 
         #order-button {
             padding: 10px 20px;
-            background-color: #5cb85c; /* Изменен цвет кнопки */
+            background-color: #5cb85c;
             color: #fff;
             border: none;
             cursor: pointer;
             transition: background-color 0.3s;
-            width: 100%; /* Занимает всю ширину контейнера */
-            font-size: 18px; /* Увеличенный размер текста кнопки */
-            border-radius: 4px; /* Скругление углов кнопки */
+            width: 100%;
+            font-size: 18px;
+            border-radius: 4px;
         }
 
         #order-button:hover {
-            background-color: #4cae4c; /* Цвет кнопки при наведении */
+            background-color: #4cae4c;
         }
 
-        #order-description {
-            width: calc(100% - 20px); /* Ширина с учетом padding */
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            margin-bottom: 10px;
-            font-size: 16px; /* Увеличенный размер текста */
-            box-sizing: border-box; /* Гарантирует, что padding не добавляет ширину */
+        @media (max-width: 600px) {
+            #order-form {
+                width: 90%;
+            }
         }
     </style>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.1/jquery.min.js"></script>

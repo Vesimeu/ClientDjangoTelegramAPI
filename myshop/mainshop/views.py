@@ -138,20 +138,26 @@ def profile_view(request):
         return redirect('telegram_auth')
 
 def delete_order(request, order_id):
-    # Получаем заказ для удаления
-    order = Order.objects.get(pk=order_id)
+    try:
+        # Получаем заказ для удаления
+        order = Order.objects.get(pk=order_id)
 
-    # Удаляем заказ
-    order.delete()
+        # Удаляем заказ
+        order.delete()
 
-    # Перенаправляем пользователя обратно на страницу профиля
-    return redirect('profile')
+        # Перенаправляем на страницу профиля с сообщением об успешном удалении
+        return redirect('profile')
+
+    except Order.DoesNotExist:
+        # Если заказ с указанным order_id не существует, возвращаем ошибку
+        return render(request, 'profile.html', {'username': request.user.username, 'orders': Order.objects.filter(user=request.user), 'order_deleted': False})
+
 
 
 def order_page(request):
     try:
         telegram_id = request.COOKIES.get('telegram_id', '0')
-        print(request.session.get('is_authenticated'))
+        print("Пользователь авторизован", request.session.get('is_authenticated'))
         print(request.COOKIES.get('is_authenticated'))
 
         # Проверяем, авторизован ли пользователь

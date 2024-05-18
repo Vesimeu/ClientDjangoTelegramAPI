@@ -77,9 +77,25 @@
             color: #777;
             text-align: center;
         }
+        .back-button {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            padding: 8px 16px;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .back-button:hover {
+            background-color: #0056b3;
+        }
     </style>
 </head>
 <body>
+    <a class="back-button" href="javascript:history.back()">Назад</a>
     <div class="container">
         <h1>Добро пожаловать, {{ username }}!</h1>
 
@@ -97,7 +113,7 @@
                                 <strong>Price:</strong> ${{ order.price }}<br>
                             </div>
                             <div class="order-actions">
-                                <form action="{% url 'delete_order' order.id %}" method="post">
+                                <form action="{% url 'delete_order' order.id %}" method="post" onsubmit="return confirm('Вы уверены, что хотите удалить этот заказ?');">
                                     {% csrf_token %}
                                     <button type="submit">Delete</button>
                                 </form>
@@ -108,6 +124,10 @@
             </ul>
         {% else %}
             <p class="no-orders">No orders found.</p>
+        {% endif %}
+
+        {% if order_deleted %}
+            <p>Заказ удален</p>
         {% endif %}
     </div>
 </body>
