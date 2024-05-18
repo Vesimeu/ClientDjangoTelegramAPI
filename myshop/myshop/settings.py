@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-z3qkfc9zn+&ejjw5gpl1&axc)tbwk2jbk__mzlx(24@pr-$tn+
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
 
 DJANGO_TELEGRAMBOT = {
     'MODE': 'WEBHOOK',  # Режим работы - вебхук
@@ -170,3 +170,13 @@ SECURE_SSL_REDIRECT = True
 SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
 
+SECURE_REFERRER_POLICY = None
+
+CORS_ALLOW_ORIGIN = ['https://localhost:8000']
+
+CSRF_TRUSTED_ORIGINS = [
+    'https://localhost:8000/',
+    'https://127.0.0.1:8000/notify_user/ ',
+    'https://127.0.0.1:8000/notify_user',
+    'https://127.0.0.1:8000 '
+]

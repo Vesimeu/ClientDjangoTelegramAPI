@@ -5,6 +5,7 @@ from aiogram.contrib.middlewares.logging import LoggingMiddleware
 from aiogram.utils import executor
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.types.web_app_info import WebAppInfo
+from channels.db import database_sync_to_async
 from django.core.management import BaseCommand
 from asgiref.sync import sync_to_async
 import urllib3
@@ -12,7 +13,7 @@ urllib3.disable_warnings() # disable ssl warning
 
 main_url = '127.0.0.1:8000'
 from myshop import settings
-from mainshop.models import User
+from mainshop.models import User, Order
 
 class Command(BaseCommand):
     help = 'Starts the telegram bot for customers.'
@@ -54,8 +55,8 @@ class TelegramBot:
         user = await sync_to_async(lambda queryset: queryset.first())(user)
 
         if user:
-            token = self.generate_token(user_id)
-            await self.send_auth_link_message(message.chat.id, token)
+            # token = self.generate_token(user_id)
+            await self.handle_go_to_site(message)
         else:
             await message.answer("Вы еще не зарегистрированы.")
 
@@ -69,17 +70,33 @@ class TelegramBot:
         else:
             await self.handle_registration(message)  # Регистрируем, если пользователь не зарегистрирован
 
+    # async def handle_registration(self, message: types.Message):
+    #     user_id = message.from_user.id
+    #     user = await sync_to_async(User.objects.filter)(telegram_id=user_id)
+    #     user = await sync_to_async(lambda queryset: queryset.first())(user)
+    #
+    #     if user:
+    #         await message.answer("Вы уже зарегистрированы.")
+    #     else:
+    #         token = self.generate_token(user_id)
+    #         await sync_to_async(self.send_data_to_server)(user_id, token)
+    #         await self.send_auth_link_message(message.chat.id, token)
+
     async def handle_registration(self, message: types.Message):
         user_id = message.from_user.id
-        user = await sync_to_async(User.objects.filter)(telegram_id=user_id)
-        user = await sync_to_async(lambda queryset: queryset.first())(user)
+        user, created = await sync_to_async(User.objects.get_or_create)(telegram_id=user_id)
 
-        if user:
-            await message.answer("Вы уже зарегистрированы.")
-        else:
+        if created:
+            # Если пользователь был создан в базе данных, создаем и сохраняем токен
             token = self.generate_token(user_id)
-            await sync_to_async(self.send_data_to_server)(user_id, token)
+            await sync_to_async(self.save_user_token)(user, token)
+
+            # Отправляем данные на сервер Django
+            await self.send_data_to_server(user_id, token, message.chat.id)
             await self.send_auth_link_message(message.chat.id, token)
+        else:
+            # Если пользователь уже существует, выводим сообщение об ошибке
+            await message.answer("Ошибка: пользователь уже зарегистрирован.")
 
 
     async def handle_callback(self, query: types.CallbackQuery):
@@ -129,6 +146,16 @@ class TelegramBot:
     def save_user_token(self, user, token):
         user.token = token
         user.save()
+
+    # @database_sync_to_async
+    # def get_order(self, order_id):
+    #     return Order.objects.get(id=order_id)
+
+    async def notify_user(self, order): #Функция которая уведомляет пользователя о заказе
+        try:
+            await self.bot.send_message(order.id_client, f"Ваш заказ '{order.description}' был принят.")
+        except Exception as e:
+            print(f"Ошибка при отправке уведомления пользователю: {e}")
 
     async def send_data_to_server(self, user_id, token, chat_id):
         url = f'https://{main_url}/telegram_auth/'

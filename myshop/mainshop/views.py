@@ -79,10 +79,41 @@ def telegram_auth(request):
         # Оставьте ваш текущий код обработки POST-запросов без изменений
         pass
 
+def notify_user(request):
+    if request.method == 'GET':
+        data = json.loads(request.body)
+        print(data)
+        order_data = data.get('order')
+        order_id = order_data.get('id')
+        description = order_data.get('description')
+        client_id = order_data.get('id_client')
+
+        # Код для уведомления пользователя через клиентского бота
+        try:
+            # Ваш код для отправки уведомления через клиентского бота
+            send_message_to_telegram_client(f"Ваш заказ '{description}' принят!", client_id)
+            return JsonResponse({'status': 'ok'})
+        except Exception as e:
+            print(f"Ошибка при отправке уведомления пользователю: {e}")
+            return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+    else:
+        return JsonResponse({'status': 'error'}, status=400)
+
+
+
 def send_message_to_telegram(message):
     try:
         bot = Bot(token=settings.TOKEN_ADMIN)
         bot.send_message(chat_id=TELEGRAM_CHAT_ID, text=message)
+        return True
+    except Exception as e:
+        print(f"Ошибка при отправке сообщения в Telegram: {e}")
+        return False
+
+def send_message_to_telegram_client(message, chat_id):
+    try:
+        bot = Bot(token=settings.TOKEN_BOT_CLIENT)
+        bot.send_message(chat_id=chat_id, text=message)
         return True
     except Exception as e:
         print(f"Ошибка при отправке сообщения в Telegram: {e}")

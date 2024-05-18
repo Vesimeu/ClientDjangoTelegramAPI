@@ -2,8 +2,10 @@ import asyncio
 from aiogram import Bot, Dispatcher, types
 from aiogram.contrib.middlewares.logging import LoggingMiddleware
 from aiogram.utils import executor
+import requests
 from channels.db import database_sync_to_async
 from django.core.management import BaseCommand
+# from telegram_bot_client import TelegramBot as ClientTelegramBot
 
 from myshop import settings
 from mainshop.models import Order
@@ -29,6 +31,9 @@ class TelegramBot:
         self.dp.register_message_handler(self.decline_order, commands=['decline'])
         self.dp.register_message_handler(self.order_list, commands=['order_list'])
 
+        # Инициализация клиентского бота
+        self.client_bot_url = f"https://localhost:8000/notify_user/"
+
     async def start(self, message: types.Message):
         await message.answer("Добро пожаловать! Этот бот поможет вам сделать заказ через наш сайт.")
 
@@ -43,11 +48,28 @@ class TelegramBot:
             try:
                 order = await self.get_order(order_id)
                 await self.process_order(order)
+                await self.notify_user(order)
                 await message.answer(f"Заказ #{order_id} принят.")
             except Order.DoesNotExist:
                 await message.answer("Заказ с указанным номером не найден.")
         else:
             await message.answer("Вы не указали номер заказа.")
+
+    async def notify_user(self, order):
+        order_data = {
+            "id": order.id,
+            "description": order.description,
+            "id_client": order.id_client
+        }
+        headers = {
+            "Referer": "https://127.0.0.1:8000/notify_user/"
+        }
+        try:
+            response = requests.get(self.client_bot_url, json={"order": order_data}, headers=headers, verify=False)
+            if response.status_code != 200:
+                raise Exception(f"Ошибка при отправке уведомления: {response.text}")
+        except Exception as e:
+            print(f"Ошибка при отправке уведомления пользователю: {e}")
 
     @database_sync_to_async
     def get_order(self, order_id):
@@ -80,7 +102,7 @@ class TelegramBot:
     def get_all_orders(self):
         return list(Order.objects.all())
 
-    async def order_list(self, message: types.Message): #Тут упал бот
+    async def order_list(self, message: types.Message):
         orders = await self.get_all_orders()
         print(orders)
         if orders:
