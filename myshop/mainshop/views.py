@@ -11,6 +11,7 @@ from telegram import Bot
 
 Order = models.Order
 User = models.User
+Executor = models.Executor
 
 TELEGRAM_CHAT_ID = '708969494'
 
@@ -96,14 +97,12 @@ def notify_user(request):
             return JsonResponse({'status': 'error', 'message': 'Пользователь не найден'}, status=404)
         username = user.username
 
-        executor = User.objects.filter(telegram_id=executor_id).first()
-        print(executor)
-        if not executor:
+        executor_name = Executor.objects.filter(telegram_id=executor_id).first()
+        if not executor_name:
             return JsonResponse({'status': 'error', 'message': 'Исполнитель не найден'}, status=404)
-        executor_name = executor.username
 
         # Создаем сообщение для отправки
-        message = f"Уважаемый @{username}, ваш заказ '{description}' принят пользователем @{executor_name}. \nСпасибо за ваш заказ!"
+        message = f"Уважаемый {username}, ваш заказ '{description}' принят пользователем @{executor_name}. \nСпасибо за ваш заказ!"
 
         # Код для уведомления пользователя через клиентского бота
         try:

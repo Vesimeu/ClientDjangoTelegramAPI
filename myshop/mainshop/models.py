@@ -43,3 +43,12 @@ class User(AbstractUser):
 
     def __str__(self):
         return self.username
+class Executor(models.Model):
+    telegram_id = models.CharField(max_length=255, unique=True)
+    username = models.CharField(max_length=100)
+    active_orders = models.ManyToManyField(Order, related_name='active_executors', blank=True)
+    completed_orders = models.IntegerField(default=0)
+    information = models.TextField(null=True, blank=True)
+
+    def __str__(self):
+        return self.username
