@@ -5,6 +5,9 @@ from aiogram.contrib.middlewares.logging import LoggingMiddleware
 from aiogram.utils import executor
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.types.web_app_info import WebAppInfo
+import json
+# from ... import views
+from django.http import HttpResponse
 from channels.db import database_sync_to_async
 from django.core.management import BaseCommand
 from asgiref.sync import sync_to_async
@@ -15,8 +18,25 @@ main_url = '127.0.0.1:8000'
 from myshop import settings
 from mainshop.models import User, Order
 
+
+async def send_message_to_telegram_client(message, chat_id):
+    bot = Bot(token=settings.TOKEN_BOT_CLIENT)
+    keyboard = InlineKeyboardMarkup()
+    accept_button = InlineKeyboardButton("Принять", callback_data="accept_order")
+    reject_button = InlineKeyboardButton("Отклонить", callback_data="reject_order")
+    keyboard.add(accept_button, reject_button)
+
+    try:
+        await bot.send_message(chat_id=chat_id, text=message, reply_markup=keyboard)
+    except Exception as e:
+        print(f"Ошибка при отправке сообщения в Telegram: {e}")
+    finally:
+        session = await bot.get_session()
+        await session.close()
+
+
 class Command(BaseCommand):
-    help = 'Starts the telegram bot for customers.'
+    help = 'Это телеграмм бот для пользователей. Сделать клиент получает уведомление о его заказе. Может авторизоваться и зарегестрироваться на сайт..'
 
     def handle(self, *args, **options):
         bot_token = settings.TOKEN_BOT_CLIENT
@@ -35,6 +55,22 @@ class TelegramBot:
         self.dp.register_message_handler(self.reg, commands=['reg'])
         self.dp.register_callback_query_handler(self.handle_callback, lambda c: True)
         self.dp.register_message_handler(self.handle_go_to_site, commands=['go_to_site'])
+
+    async def handle_callback(self, query: types.CallbackQuery):
+        print("Пришёл ответ")
+        if query.data == 'registration':
+            await self.handle_registration(query.message)
+        elif query.data == 'accept_order':
+            await self.handle_accept_order(query.message)
+        elif query.data == 'reject_order':
+            await self.handle_reject_order(query.message)
+        await query.answer()  # Обязательно отвечайте на callback, чтобы убрать "крутящийся" индикатор в Telegram
+
+    async def handle_accept_order(self, message: types.Message):
+        await message.answer("Вы приняли заказ.")
+
+    async def handle_reject_order(self, message: types.Message):
+        await message.answer("Вы отклонили заказ.")
 
     async def start(self, message: types.Message):
         user_id = message.from_user.id
@@ -95,10 +131,6 @@ class TelegramBot:
             await message.answer("Ошибка: пользователь уже зарегистрирован.")
 
 
-    async def handle_callback(self, query: types.CallbackQuery):
-        if query.data == 'registration':
-            await self.handle_registration(query.message)
-
     async def handle_go_to_site(self, message: types.Message):
         await message.answer("Можете переходить на сайт!.")
         user_id = message.from_user.id
@@ -114,6 +146,7 @@ class TelegramBot:
 
         await self.send_data_to_server(user_id, token, message.chat.id)
         await self.send_auth_link_message(message.chat.id, token)
+
 
     async def send_auth_link_message(self, chat_id, token):
         auth_link = f'https://{main_url}/telegram_auth/?token={token}'
@@ -170,4 +203,4 @@ class TelegramBot:
             await self.send_auth_link_message(chat_id, token)
 
     def start_bot(self):
-        executor.start_polling(self.dp, skip_updates=True)
+        executor.start_polling(self.dp, skip_updates=False)
