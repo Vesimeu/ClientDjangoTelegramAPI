@@ -13,14 +13,19 @@
 <h1 align="center">
   
 ## Функционал
-Возможность создавать заказы на сайте и траслировать их через телеграмм бота.
-UPDATA : 
-- Сделать авторизацию через телеграмм бота.
-- Сделать пользовательский интерфейс который позволит взаимодействовать и отслеживать заказы.
+- АВТОРИЗАЦИЯ ЧЕРЕЗ ТЕЛЕГРАМ БОТА
+- ОТДЕЛЬНЫЙ БОТ С ИНТЕРФЕЙСОМ ДЛЯ ФРИЛАНСЕРОВ И ДЛЯ ПОЛЬЗОВАТЕЛЕЙ
+- УДОБНЫЙ ИНТЕРФЕЙС
+- ПОДДЕРЖКА WebApp
 ## Запуск проекта:
-python manage.py runserver
-Изображение сайта:
-![photo_2024-01-19_01-08-51](https://github.com/Vesimeu/ClientDjangoTelegramAPI/assets/99329018/6bc0f026-23be-4803-94b3-382e6e88a5c3)
-Изоражение ответа от бота:
-![image](https://github.com/Vesimeu/ClientDjangoTelegramAPI/assets/99329018/df20fbaa-4994-4fb1-8f8e-76d2708da9ee)
+ГЛАВНАЯ СТРАНИЦА:
+![FireShot Capture 001 - Фриланс Заказы - 127 0 0 1](https://github.com/Vesimeu/ClientDjangoTelegramAPI/assets/99329018/3323ff5c-1059-42f3-83cd-9570b3b18472)
+Страница заказа:
+![image](https://github.com/Vesimeu/ClientDjangoTelegramAPI/assets/99329018/dbbbfbb8-2b90-4f72-9bde-87dd018541a7)
+WebAppTelegram:
+![image](https://github.com/Vesimeu/ClientDjangoTelegramAPI/assets/99329018/e8a67d32-22aa-4534-8da7-b2d8aa6984a6)
+Телеграм бот для фрилансеров:
+![image](https://github.com/Vesimeu/ClientDjangoTelegramAPI/assets/99329018/e046b0f2-5680-416e-9db2-c96fe805979c)
+Телеграм бот для пользователей:
+![image](https://github.com/Vesimeu/ClientDjangoTelegramAPI/assets/99329018/86f5d368-701e-40cc-9119-ac371c485223)
 
