@@ -63,7 +63,7 @@ class TelegramBot:
             await message.answer("Для доступа к боту вам нужно зарегистрироваться. Пожалуйста, введите пароль:")
             await RegistrationStates.waiting_for_password.set()
         else:
-            await message.answer(f"Добро пожаловать, {username}! Этот бот поможет вам сделать заказ через наш сайт.",
+            await message.answer(f"Добро пожаловать, {username}!",
                                  reply_markup=self.main_keyboard())
 
     async def check_password(self, message: types.Message, state: FSMContext):

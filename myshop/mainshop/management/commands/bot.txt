@@ -2,22 +2,27 @@ import uuid
 import requests
 from aiogram import Bot, Dispatcher, types
 from aiogram.contrib.middlewares.logging import LoggingMiddleware
-from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.utils import executor
+from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.types.web_app_info import WebAppInfo
 import json
 # from ... import views
 from django.http import HttpResponse
 from channels.db import database_sync_to_async
+import logging
+logging.basicConfig(level=logging.INFO)
 from django.core.management import BaseCommand
 from asgiref.sync import sync_to_async
 import urllib3
 urllib3.disable_warnings() # disable ssl warning
 
 main_url = '127.0.0.1:8000'
+
+logging.basicConfig(level=logging.INFO)
+
+
 from myshop import settings
 from mainshop.models import User, Order, Executor
-
 
 
 class Command(BaseCommand):
@@ -38,76 +43,65 @@ class TelegramBot:
         self.dp.register_message_handler(self.start, commands=['start'])
         self.dp.register_message_handler(self.auth, commands=['auth'])
         self.dp.register_message_handler(self.reg, commands=['reg'])
-        self.dp.register_message_handler(self.my_orders, commands=['my_orders'])
-        self.dp.register_message_handler(self.my_orders, text=['Список заказов'])
+
         self.dp.register_callback_query_handler(self.handle_callback, lambda c: True)
+
+        self.dp.register_message_handler(self.show_orders, commands=['my_orders'])
         self.dp.register_message_handler(self.handle_go_to_site, commands=['go_to_site'])
 
+
     async def handle_callback(self, query: types.CallbackQuery):
-        data = query.data
-        if data.startswith('accept_order_'):
-            order_id = data.split('_')[-1]
-            await self.handle_accept_order(query.message, order_id)
-        elif data.startswith('reject_order_'):
-            order_id = data.split('_')[-1]
-            await self.handle_reject_order(query.message, order_id)
-        elif data == 'registration':
+        logging.info(f"Callback data received: {query.data}")
+        print("da")
+        data = query.data.split(':')
+        action = data[0]
+        if action == 'registration':
             await self.handle_registration(query.message)
+        elif action == 'accept_order':
+            order_id = int(data[1])
+            await self.handle_accept_order(query.message, order_id)
+        elif action == 'reject_order':
+            order_id = int(data[1])
+            await self.handle_reject_order(query.message, order_id)
         await query.answer()  # Обязательно отвечайте на callback, чтобы убрать "крутящийся" индикатор в Telegram
 
-    async def handle_accept_order(self, message: types.Message, order_id):
-        order = await self.get_order(order_id)
-        await self.accept_order(order)
-        await message.answer("Вы успешно приняли заказ!")
+    async def handle_accept_order(self, message: types.Message, order_id: int):
+        await message.answer(f"Вы приняли заказ {order_id}.")
 
-    async def handle_reject_order(self, message: types.Message, order_id):
-        order = await self.get_order(order_id)
-        await self.decline_order(order)
-        await message.answer("Вы отклонили заказ.")
+    async def handle_reject_order(self, message: types.Message, order_id: int):
+        order = await sync_to_async(Order.objects.get)(id=order_id)
+        order.accepted = False
+        await sync_to_async(order.save)()
+        await message.answer(f"Вы отклонили заказ {order_id}.")
 
-    async def my_orders(self, message: types.Message):
+    async def show_orders(self, message: types.Message):
         user_id = message.from_user.id
-        user = await sync_to_async(User.objects.filter)(telegram_id=user_id)
-        user = await sync_to_async(lambda queryset: queryset.first())(user)
+        orders = await self.get_all_orders(user_id)
 
-        if user:
-            orders = await sync_to_async(Order.objects.filter)(id_client=user_id)
-            orders = await sync_to_async(list)(orders)  # Преобразуем QuerySet в список
-            if orders:
-                for order in orders:
-                    # Собираем текст заказа с дополнительной информацией
-                    order_text = (
-                        f"Заказ ID: {order.id}\n"
-                        f"Предмет: {order.subject}\n"
-                        f"Описание: {order.description}\n"
-                        f"Цена: {order.price}\n"
-                    )
-                    if order.accepted:
-                        executor_info = await self.get_executor_info(order.id_executor)
-                        if executor_info:
-                            order_text += (
-                                f"Фрилансер: @{executor_info['username']}\n"
-                                f"Информация: {executor_info['information']}\n"
-                            )
-                    await message.answer(order_text)
-            else:
-                await message.answer("У вас нет заказов.")
+        if orders:
+            for order in orders:
+                order_text = f"Заказ ID: {order.id}\nОписание: {order.description}\n"
+                if order.accepted:
+                    executor_info = await self.get_executor_info(order.id_executor)
+                    if executor_info:
+                        order_text += f"Фрилансер: {executor_info['username']}\nИнформация: {executor_info['information']}\n"
+                    accept_button = InlineKeyboardButton("Принять", callback_data=f'accept_order:{order.id}')
+                    reject_button = InlineKeyboardButton("Отклонить", callback_data=f'reject_order:{order.id}')
+                    keyboard = InlineKeyboardMarkup().add(accept_button, reject_button)
+                else:
+                    keyboard = None
+
+                await self.bot.send_message(chat_id=message.chat.id, text=order_text, reply_markup=keyboard)
         else:
-            await message.answer("Вы не авторизованы. Пожалуйста, зарегистрируйтесь или авторизуйтесь.")
-    def main_keyboard(self):
-        keyboard = ReplyKeyboardMarkup(resize_keyboard=True)
-        keyboard.add(KeyboardButton("Список заказов"))
-        return keyboard
+            await message.answer("У вас нет заказов.")
 
     async def start(self, message: types.Message):
         user_id = message.from_user.id
-        username = message.from_user.username
         user = await sync_to_async(User.objects.filter)(telegram_id=user_id)
         user = await sync_to_async(lambda queryset: queryset.first())(user)
 
         if user:
-            await message.answer(f"Добро пожаловать обратно {username}!",
-                                 reply_markup=self.main_keyboard())
+            await message.answer("Вы уже зарегистрированы.")
             await self.auth(message)
         else:
             keyboard = types.InlineKeyboardMarkup()
@@ -161,18 +155,17 @@ class TelegramBot:
 
 
     async def handle_go_to_site(self, message: types.Message):
-        await message.answer("Можете переходить на сайт!")
+        await message.answer("Можете переходить на сайт!.")
         user_id = message.from_user.id
         token = self.generate_token(user_id)
         user = await sync_to_async(User.objects.filter)(telegram_id=user_id)
         user = await sync_to_async(lambda queryset: queryset.first())(user)
 
         if user:
-            await self.save_user_token(user, token)
-            # await message.answer("Ваш токен успешно сохранен в базе данных")
+            await sync_to_async(self.save_user_token)(user, token)
+            await message.answer("Ваш токен успешно сохранен в базе данных")
         else:
             await message.answer("Ошибка: пользователь не найден в базе данных")
-            await self.reg(message)
 
         await self.send_data_to_server(user_id, token, message.chat.id)
         await self.send_auth_link_message(message.chat.id, token)
@@ -201,12 +194,7 @@ class TelegramBot:
         return uuid.uuid4().hex
 
     @database_sync_to_async
-    def save_user_token(self, user, token):
-        user.token = token
-        user.save()
-
-    @database_sync_to_async
-    def decline_order(self, order):  # Изменить. Это функция для отмены заказа
+    def decline_order(self, order): #Изменить. Это функция для отмены заказа
         order.accepted = False
         order.save()
 
@@ -220,28 +208,24 @@ class TelegramBot:
             }
         except Executor.DoesNotExist:
             return None
-
     @database_sync_to_async
-    def get_all_orders(self, order_id):
-        try:
-            # Возвращаем все заказы, удовлетворяющие условиям фильтрации
-            return Order.objects.filter(id_client=order_id)
-        except Order.DoesNotExist:
-            return None
-
-    @database_sync_to_async  # Изменить. Это функция для принятия заказа.
-    def accept_order(self, order):
-        order.status_orders = 'in_progress'
+    def get_all_orders(self, telegram_id):
+        orders = Order.objects.filter(id_client=telegram_id)
+        return list(orders)
+    @database_sync_to_async #Изменить. Это функция для принятия заказа.
+    def process_order(self, order):
+        order.accepted = True
         order.save()
-
-    @database_sync_to_async
-    def get_order(self, order_id):
-        return Order.objects.get(id=order_id)
 
     @database_sync_to_async
     def save_user_token(self, user, token):
         user.token = token
         user.save()
+
+    # @database_sync_to_async
+    # def get_order(self, order_id):
+    #     return Order.objects.get(id=order_id)
+
 
     async def send_data_to_server(self, user_id, token, chat_id):
         url = f'https://{main_url}/telegram_auth/'
@@ -255,7 +239,9 @@ class TelegramBot:
             user = await sync_to_async(lambda queryset: queryset.first())(user)
             if user:
                 print("Сохранил токен в базу данных")
-                await self.save_user_token(user, token)
+                # user.token = token
+                # user.save()
+                await sync_to_async(self.save_user_token)(user, token)
                 print("Данные успешно отправлены на сервер Django")
             else:
                 print("Ошибка: пользователь не найден в базе данных")
@@ -265,4 +251,4 @@ class TelegramBot:
             await self.send_auth_link_message(chat_id, token)
 
     def start_bot(self):
-        executor.start_polling(self.dp, skip_updates=False)
+        executor.start_polling(self.dp, skip_updates=True)

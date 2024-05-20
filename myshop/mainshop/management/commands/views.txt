@@ -8,6 +8,7 @@ from mainshop import models
 from myshop import settings
 from aiogram import Bot, types
 import asyncio
+
 Order = models.Order
 User = models.User
 Executor = models.Executor
@@ -84,17 +85,14 @@ def notify_user(request):
             return JsonResponse({'status': 'error', 'message': 'Пользователь не найден'}, status=404)
         username = user.username
 
-        executor = Executor.objects.filter(telegram_id=executor_id).first()
-        if not executor:
+        executor_name = Executor.objects.filter(telegram_id=executor_id).first()
+        if not executor_name:
             return JsonResponse({'status': 'error', 'message': 'Исполнитель не найден'}, status=404)
 
-        executor_name = executor.username
-        executor_info = executor.information
-
-        message = f"Уважаемый {username}, ваш заказ '{description}' принят пользователем @{executor_name}. \nИнформация о исполнителе: {executor_info} \nСпасибо за ваш заказ!"
+        message = f"Уважаемый {username}, ваш заказ '{description}' принят пользователем @{executor_name}. \nСпасибо за ваш заказ!"
 
         try:
-            asyncio.run(send_message_to_telegram_client(message, client_id,order_id))
+            asyncio.run(send_message_to_telegram_client(message, client_id))
             return JsonResponse({'status': 'ok'})
         except Exception as e:
             print(f"Ошибка при отправке уведомления пользователю: {e}")
@@ -111,24 +109,14 @@ async def send_message_to_telegram(message):
         print(f"Ошибка при отправке сообщения в Telegram: {e}")
         return False
 
-
-async def send_message_to_telegram_client(message, chat_id, id_orders):
+async def send_message_to_telegram_client(message, chat_id):
     bot = Bot(token=settings.TOKEN_BOT_CLIENT)
-    keyboard = types.InlineKeyboardMarkup()
-
-    # Изменяем callback_data, добавляя id_orders
-    accept_button = types.InlineKeyboardButton("Принять", callback_data=f"accept_order_{id_orders}")
-    reject_button = types.InlineKeyboardButton("Отклонить", callback_data=f"reject_order_{id_orders}")
-
-    keyboard.add(accept_button, reject_button)
-
     try:
-        await bot.send_message(chat_id=chat_id, text=message, reply_markup=keyboard)
+        await bot.send_message(chat_id=chat_id, text=message)
         return True
     except Exception as e:
         print(f"Ошибка при отправке сообщения в Telegram: {e}")
         return False
-
 
 def profile_view(request):
     telegram_id = request.COOKIES.get('telegram_id')
